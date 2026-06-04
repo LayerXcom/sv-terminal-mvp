@@ -12,6 +12,13 @@ Linear の親 issue `BAA-1030` 配下で追跡する。
 docs/archive/20260603-hitl-sv-terminal-requirements/
 ```
 
+## Demo 環境
+
+- Linear project: `test-tenantid-00000000-0000-488b-81ca-8c90531b1945`
+- Linear project URL: https://linear.app/layerx-inc/project/test-tenantid-00000000-0000-488b-81ca-8c90531b1945-9424122f2e0c/overview
+- Slack operation channel: `#sv-approval-operation-demo`
+- Slack inquiry channel: `#sv-approval-inquiries_test` (`C0B91JF61JL`)
+
 ## 完了
 
 - `BAA-1064`: Linear 運用モデルとマーカー構文
