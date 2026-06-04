@@ -49,6 +49,8 @@ docs/archive/20260603-hitl-sv-terminal-requirements/
 - 承認 / CR / 却下マーカーを定義する
 - CR 時のエージェント再開フローを定義する
 
+論点整理: [方針確定から Rule Proposal 承認までの HITL 論点](07-decision-to-rule-proposal-hitl-questions.md)
+
 ### BAA-1068: ローカル PC エージェントの PR / バックテストフロー
 
 - Linear issue コンテキスト取得を定義する
