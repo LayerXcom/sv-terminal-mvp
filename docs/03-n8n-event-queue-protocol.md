@@ -1,24 +1,24 @@
-# n8n Event Queue Protocol
+# n8n イベントキュープロトコル
 
-## Decision
+## 方針
 
-Use n8n Data Table `sv_terminal_events` as:
+n8n Data Table `sv_terminal_events` を次の用途で使う:
 
-- event inbox
-- audit log
-- retry queue
+- イベント受信箱（inbox）
+- 監査ログ
+- リトライキュー
 
-The engineer local worker polls n8n and Linear. It does not expose inbound ports.
+エンジニアのローカル worker は n8n と Linear をポーリングする。インバウンド用のポートは公開しない。
 
 ## n8n API
 
-Assumptions:
+前提:
 
-- Data Tables are managed by Data Table node, DataTable API endpoint, or UI.
-- API endpoint family: `/datatables`.
-- API auth header: `X-N8N-API-KEY`.
+- Data Table は Data Table ノード、DataTable API エンドポイント、または UI で管理する。
+- API エンドポイント群: `/datatables`。
+- API 認証ヘッダ: `X-N8N-API-KEY`。
 
-Minimum scopes:
+最低限のスコープ:
 
 - `dataTable:read`
 - `dataTable:list`
@@ -27,15 +27,15 @@ Minimum scopes:
 - `dataTableRow:update`
 - `dataTableRow:upsert`
 
-## Table
+## テーブル
 
 ```text
 sv_terminal_events
 ```
 
-## Columns
+## カラム
 
-Required:
+必須:
 
 - `event_id`
 - `created_at`
@@ -62,7 +62,7 @@ Required:
 - `result_linear_comment_id`
 - `processed_at`
 
-Optional:
+任意:
 
 - `run_id`
 - `parent_event_id`
@@ -70,7 +70,7 @@ Optional:
 - `requires_approval`
 - `approval_action_id`
 
-## Status Lifecycle
+## ステータスライフサイクル
 
 ```text
 queued -> claimed -> processing -> done
@@ -80,20 +80,20 @@ queued -> claimed -> processing -> done
                          -> ignored
 ```
 
-## Dedupe Keys
+## 重複排除キー（dedupe_key）
 
-Examples:
+例:
 
-- Slack top-level inquiry: `slack:<channel_id>:<thread_ts>:create_issue`
-- Slack thread reply: `slack:<channel_id>:<thread_ts>:<message_ts>`
-- Linear marker: `linear:<issue_identifier>:<marker_id>`
-- Dummy alert: `dummy:<tenant_key>:<rule_id>:<window_start>:<window_end>`
+- Slack トップレベル問い合わせ: `slack:<channel_id>:<thread_ts>:create_issue`
+- Slack スレッド返信: `slack:<channel_id>:<thread_ts>:<message_ts>`
+- Linear マーカー: `linear:<issue_identifier>:<marker_id>`
+- ダミーアラート: `dummy:<tenant_key>:<rule_id>:<window_start>:<window_end>`
 
-The local worker must check for existing `done`, `processing`, or valid `claimed` rows with the same `dedupe_key` before processing.
+ローカル worker は処理前に、同一 `dedupe_key` で `done` / `processing` / 有効な `claimed` の行がないか確認する。
 
-## Lease and Retry
+## リースとリトライ
 
-When claiming:
+クレーム時:
 
 - `status = claimed`
 - `claimed_by = <worker_id>`
@@ -101,25 +101,25 @@ When claiming:
 - `lease_until = now + 120 sec`
 - `attempts = attempts + 1`
 
-Retry condition:
+リトライ条件:
 
 - `status = failed`
 - `attempts < 3`
 
-Backoff:
+バックオフ:
 
-- attempt 1: immediate
-- attempt 2: 60 sec
-- attempt 3: 300 sec
+- 1 回目: 即時
+- 2 回目: 60 秒
+- 3 回目: 300 秒
 
-After 3 failures, keep `failed` and write a manual-attention comment to Linear Event Log.
+3 回失敗後は `failed` のままとし、Linear Event Log に手動対応が必要なコメントを書く。
 
-## Payload Boundary
+## ペイロードの境界
 
-Allowed:
+許可:
 
-- Slack channel / thread / message ids
-- Linear issue id / identifier
+- Slack の channel / thread / message id
+- Linear の issue id / identifier
 - action type
 - marker id
 - target proposal id
@@ -127,55 +127,55 @@ Allowed:
 - tenant key
 - PR URL
 - run id
-- short metadata
+- 短いメタデータ
 
-Forbidden:
+禁止:
 
-- full request details
-- full accounting conversation text
-- customer secrets
-- tokens / API keys / credentials
-- attachment contents
+- 申請明細の全文
+- 経理会話の全文
+- 顧客の機密情報
+- トークン / API キー / 認証情報
+- 添付ファイルの中身
 
-The source of truth for content stays in Linear / Slack / GitHub. The worker fetches current state before acting.
+コンテンツの正本は Linear / Slack / GitHub。worker は実行前に最新状態を取得する。
 
-## Worker Polling Protocol
+## Worker のポーリングプロトコル
 
-Poll interval:
+ポーリング間隔:
 
-- default 5 sec
-- back off to max 30 sec when empty
-- reset to 5 sec after finding queued work
+- デフォルト 5 秒
+- キューが空のときは最大 30 秒までバックオフ
+- 処理対象を見つけたら 5 秒にリセット
 
-Query:
+クエリ:
 
 - `status in (queued, failed)`
 - `attempts < 3`
-- priority ascending
-- created_at ascending
+- priority 昇順
+- created_at 昇順
 - limit 10
 
-Processing:
+処理手順:
 
-1. Fetch candidate events from n8n.
-2. Check `dedupe_key` and current `status`.
-3. Claim the event.
-4. Fetch latest Linear issue, comments, links, and sub-issues.
-5. If marker-driven, verify that the marker still exists in Linear.
-6. If dangerous, verify that `SV_APPROVAL` exists.
-7. Set `status = processing`.
-8. Run action.
-9. Post result to Linear Event Log thread.
-10. Mark n8n row `done`.
+1. n8n から候補イベントを取得する。
+2. `dedupe_key` と現在の `status` を確認する。
+3. イベントをクレームする。
+4. 最新の Linear issue、コメント、リンク、サブ issue を取得する。
+5. マーカー駆動の場合、マーカーが Linear にまだ存在するか検証する。
+6. 危険操作の場合、`SV_APPROVAL` の存在を検証する。
+7. `status = processing` にする。
+8. アクションを実行する。
+9. 結果を Linear Event Log スレッドに投稿する。
+10. n8n 行を `done` にする。
 
-Failure:
+失敗時:
 
-1. Write short `last_error`.
-2. Set `status = failed`.
-3. Post failure event to Linear Event Log thread.
-4. Let retry pick it up when retryable.
+1. 短い `last_error` を書く。
+2. `status = failed` にする。
+3. 失敗イベントを Linear Event Log スレッドに投稿する。
+4. リトライ可能ならリトライ処理に任せる。
 
-## Event Log Records
+## Event Log の記録例
 
 ```md
 [SV_EVENT id=evt_20260604_000001 type=<event_type> status=done source=n8n worker=<worker_id>]
@@ -183,7 +183,7 @@ Failure:
 [SV_ACTION_RESULT id=act_20260604_000001 status=done run_id=<run_id> pr=<url>]
 ```
 
-## MVP Event Types
+## MVP のイベント種別
 
 MVP1:
 
@@ -206,4 +206,3 @@ MVP2:
 - `evidence_collection_requested`
 - `rule_diagnosis_requested`
 - `rule_proposal_requested`
-

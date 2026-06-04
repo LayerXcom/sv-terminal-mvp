@@ -1,72 +1,72 @@
-# Implementation Roadmap
+# 実装ロードマップ
 
-Tracked in Linear under parent issue `BAA-1030`.
+Linear の親 issue `BAA-1030` 配下で追跡する。
 
-## Repository Policy
+## リポジトリ方針
 
-This repository is the canonical place for SV Terminal MVP specifications, implementation notes, and design changes.
+本リポジトリは SV Terminal MVP の仕様・実装メモ・設計変更の正本（canonical）とする。
 
-The original working notes from `z/issues/20260603_hitl_sv_terminal_requirements` are archived under:
+`z/issues/20260603_hitl_sv_terminal_requirements` の初期作業メモは次にアーカイブ済み:
 
 ```text
 docs/archive/20260603-hitl-sv-terminal-requirements/
 ```
 
-## Done
+## 完了
 
-- `BAA-1064`: Linear operation model and marker syntax
-- `BAA-1065`: n8n event queue schema and polling protocol
+- `BAA-1064`: Linear 運用モデルとマーカー構文
+- `BAA-1065`: n8n イベントキュースキーマとポーリングプロトコル
 
-## Next
+## 次の作業
 
-### BAA-1066: Slack Inquiry to Linear Issue Sync
+### BAA-1066: Slack 問い合わせから Linear issue 同期
 
-- Decide dedicated Slack channel input format
-- Decide Slack Events API event type
-- Define tenant project resolution
-- Define Linear issue bootstrap mutation/API
-- Define MVP1 phase sub-issue creation
-- Define Event Log comment creation
-- Define official Slack sync attachment
-- Define duplicate / replay / thread reply handling
+- 専用 Slack チャンネルの入力フォーマットを決める
+- Slack Events API のイベント種別を決める
+- テナント project の解決方法を定義する
+- Linear issue ブートストラップの mutation / API を定義する
+- MVP1 フェーズ用サブ issue 作成を定義する
+- Event Log コメント作成を定義する
+- 公式 Slack 同期の紐づけを定義する
+- 重複 / リプレイ / スレッド返信の扱いを定義する
 
-### BAA-1067: Decision to Rule Proposal HITL
+### BAA-1067: 意思決定からルール提案までの HITL
 
-- Define `capture_decision` marker
-- Define decision memo format
-- Define rule proposal comment format
-- Define affected rules / risk / expected diff format
-- Define approval / CR / reject markers
-- Define CR agent resume flow
+- `capture_decision` マーカーを定義する
+- 意思決定メモのフォーマットを定義する
+- ルール提案コメントのフォーマットを定義する
+- 影響ルール / リスク / 想定 diff のフォーマットを定義する
+- 承認 / CR / 却下マーカーを定義する
+- CR 時のエージェント再開フローを定義する
 
-### BAA-1068: Local PC Agent PR / Backtest Flow
+### BAA-1068: ローカル PC エージェントの PR / バックテストフロー
 
-- Define Linear issue context fetch
-- Define approval_rules worktree / branch / PR creation
-- Define Codex session roles
-- Define backtest result format
-- Define GitHub PR to Linear link
-- Define PR feedback detection and resume rules
+- Linear issue コンテキスト取得を定義する
+- approval_rules の worktree / ブランチ / PR 作成を定義する
+- Codex セッションの役割分担を定義する
+- バックテスト結果フォーマットを定義する
+- GitHub PR と Linear のリンク方法を定義する
+- PR フィードバック検知と再開ルールを定義する
 
-### BAA-1069: Delivery Verification and Announcement
+### BAA-1069: 配信検証と変更周知
 
-- Define PR merge detection
-- Define production rule version / deployed SHA / smoke check
-- Define verification comment format
-- Define announcement draft format
-- Define Slack posting destination and actor
-- Define issue close condition
+- PR マージ検知を定義する
+- 本番ルールバージョン / デプロイ SHA / スモークチェックを定義する
+- 検証コメントのフォーマットを定義する
+- 周知文ドラフトのフォーマットを定義する
+- Slack 投稿先と実行者を定義する
+- issue クローズ条件を定義する
 
-### BAA-1070: Dummy Rule Performance Alert
+### BAA-1070: ダミー・ルール性能アラート
 
-- Define dummy payload
-- Define dummy trigger method
-- Define evidence and diagnosis format
-- Join MVP1 flow at proposal approval
+- ダミーペイロードを定義する
+- ダミートリガー方法を定義する
+- 証跡と診断のフォーマットを定義する
+- 提案承認時点で MVP1 フローに合流する
 
-### BAA-1071: SV Thin UI
+### BAA-1071: SV 向け薄い UI
 
-- Define marker insertion buttons
-- Define n8n event buttons
-- Define local helper entrypoints
-- Define MVP non-goals
+- マーカー挿入ボタンを定義する
+- n8n イベントボタンを定義する
+- ローカルヘルパーのエントリポイントを定義する
+- MVP の非目標（non-goals）を定義する

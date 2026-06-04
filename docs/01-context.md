@@ -1,39 +1,38 @@
-# Context
+# コンテキスト
 
-## Problem
+## 課題
 
-SVs operate approval-agent based expense approval workflows. They handle:
+SV は approval-agent ベースの経費承認ワークフローを運用している。扱う対象は次のとおり。
 
-- escalations from human operators
-- accounting / customer consultation
-- degraded approval-rule performance
-- rule updates and announcements
+- ヒューマンオペレーターからのエスカレーション
+- 経理 / 顧客との相談
+- 承認ルール性能の劣化
+- ルール更新と変更周知
 
-The current work is spread across Slack, Linear, GitHub PRs, local agent sessions, and production verification. This is manageable for one highly skilled SV with a large monitor, but it does not scale to multiple tenants or high-volume monthly operations.
+現状の作業は Slack、Linear、GitHub PR、ローカルエージェントセッション、本番検証に分散している。熟練した SV が大画面で運用する分には成立するが、複数テナントや月次の高ボリューム運用にはスケールしない。
 
-## Desired Outcome
+## 望ましい状態
 
-SVs should be able to look at Linear and immediately know:
+SV が Linear を見ただけで、次がすぐ分かること。
 
-- what task is active
-- which phase it is in
-- who has the ball, SV or agent
-- what evidence / Slack thread / PR / backtest is attached
-- what human decision is needed next
+- どのタスクがアクティブか
+- どのフェーズにいるか
+- ボールが SV かエージェントのどちらにあるか
+- どの証跡 / Slack スレッド / PR / バックテストが紐づいているか
+- 次に必要な人間の判断は何か
 
-The SV-facing surface should stay thin. Linear remains the main UI; Chrome extension / local UI should only assist with marker insertion and explicit actions.
+SV 向けの UI は薄く保つ。Linear が主 UI とし、Chrome 拡張 / ローカル UI はマーカー挿入と明示的なアクションの補助に限定する。
 
-## Design Principle
+## 設計原則
 
-Approval-rule maintenance is treated as a delivery pipeline:
+承認ルールのメンテナンスは配信パイプラインとして扱う。
 
 ```text
-requirements discussion
-  -> rule implementation
-  -> code review
-  -> delivery
-  -> announcement
+要件・議論
+  -> ルール実装
+  -> コードレビュー
+  -> 配信
+  -> 変更周知
 ```
 
-The source of truth for approval rules remains the rule repository. The source of truth for task state and human decisions is Linear.
-
+承認ルールの正本はルールリポジトリ。タスク状態と人間の判断の正本は Linear。

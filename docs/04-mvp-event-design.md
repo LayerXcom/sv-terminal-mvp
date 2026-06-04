@@ -1,104 +1,103 @@
-# MVP Event Design
+# MVP イベント設計
 
-## Components
+## コンポーネント
 
 ### Linear
 
-- private team in the future
-- tenant project per tenant
-- parent issue as delivery unit
-- sub-issues as phases
-- status for execution state
-- label for trigger / resolution / risk / action
-- assignee for current owner
-- comment threads for Event Log, Approval, PR & Backtest
+- 将来はプライベートチーム
+- テナントごとの tenant project
+- 親 issue = 配信単位
+- サブ issue = フェーズ
+- ステータス = 実行状態
+- ラベル = トリガー / 解決 / リスク / アクション
+- 担当者 = 現在のオーナー
+- コメントスレッド: Event Log、Approval、PR & Backtest
 
 ### Slack
 
-- dedicated inquiry channel
-- Slack bot event on new top-level posts
-- n8n flow creates Linear issue
-- Linear official Slack sync keeps thread contents attached
+- 専用の問い合わせチャンネル
+- トップレベル投稿時の Slack bot イベント
+- n8n フローが Linear issue を作成
+- Linear 公式 Slack 同期でスレッド内容を紐づけ
 
 ### n8n
 
-- receives Slack / Chrome extension / Linear webhook events
-- writes event rows to Data Table
-- does not execute heavy work
+- Slack / Chrome 拡張 / Linear webhook イベントを受信
+- Data Table にイベント行を書き込む
+- 重い処理は実行しない
 
-### Local Worker
+### ローカル Worker
 
-- polls n8n and Linear
-- fetches latest issue context
-- runs Codex / approval_rules / backtest / GitHub PR / production verification
-- writes results back to Linear
+- n8n と Linear をポーリング
+- 最新の issue コンテキストを取得
+- Codex / approval_rules / バックテスト / GitHub PR / 本番検証を実行
+- 結果を Linear に書き戻す
 
-## MVP1: Slack Inquiry to Rule Delivery
+## MVP1: Slack 問い合わせからルール配信まで
 
-1. Slack inquiry created
-   - Trigger: new top-level post in dedicated Slack channel
-   - n8n creates event
-   - Linear issue and sub-issues are created by bot account
-   - Slack thread is synced to Linear
+1. Slack 問い合わせ作成
+   - トリガー: 専用 Slack チャンネルの新規トップレベル投稿
+   - n8n がイベントを作成
+   - bot アカウントが Linear issue とサブ issue を作成
+   - Slack スレッドを Linear に同期
 
-2. Accounting discussion updated
-   - Slack / Linear sync carries discussion
-   - Optional worker can detect decision-like language later
+2. 経理相談の更新
+   - Slack / Linear 同期で議論を運ぶ
+   - 任意で worker が後から意思決定っぽい文言を検知可能
 
-3. Decision captured
-   - SV adds `SV_ACTION` marker
-   - worker summarizes decision
-   - issue moves to rule draft phase
+3. 方針確定
+   - SV が `SV_ACTION` マーカーを追加
+   - worker が意思決定を要約
+   - issue をルール下書きフェーズへ進める
 
-4. Rule draft requested
-   - worker runs agent to draft proposal
-   - proposal is posted to Approval thread
-   - assignee moves to SV
+4. ルール下書き依頼
+   - worker がエージェントで提案を起草
+   - Approval スレッドに提案を投稿
+   - 担当を SV に移す
 
-5. Rule proposal approval
-   - SV approves, requests changes, or rejects
-   - dangerous actions require `SV_APPROVAL`
+5. ルール提案の承認
+   - SV が承認、変更依頼、または却下
+   - 危険操作には `SV_APPROVAL` が必須
 
-6. PR and backtest
-   - local PC agent edits approval_rules
-   - creates PR
-   - runs backtest
-   - links PR and reports result to Linear
+6. PR とバックテスト
+   - ローカル PC のエージェントが approval_rules を編集
+   - PR を作成
+   - バックテストを実行
+   - PR と結果を Linear にリンク
 
-7. PR review / merge
-   - reviewer uses GitHub / Linear integration
-   - CR resumes the agent
-   - merge triggers delivery verification
+7. PR レビュー / マージ
+   - レビュアーは GitHub / Linear 連携を利用
+   - CR でエージェントを再開
+   - マージで配信検証をトリガー
 
-8. Production verified
-   - worker checks production rule version / smoke
-   - posts verification comment
+8. 本番検証完了
+   - worker が本番ルールバージョン / スモークを確認
+   - 検証コメントを投稿
 
-9. Announcement posted
-   - worker drafts announcement
-   - SV approves
-   - Slack post is made
-   - parent issue closes after announcement, not immediately after PR merge
+9. 変更周知投稿
+   - worker が周知文を起草
+   - SV が承認
+   - Slack に投稿
+   - 親 issue は PR マージ直後ではなく、周知完了後にクローズ
 
-## MVP2: Dummy Rule Performance Alert to Rule Delivery
+## MVP2: ダミー・ルール性能アラートからルール配信まで
 
-1. Dummy bad feedback alert
-   - Trigger: manual n8n / local worker dummy event
-   - Event includes tenant, rule id, bad feedback count, and window
+1. ダミー・悪いフィードバックアラート
+   - トリガー: 手動 n8n / ローカル worker のダミーイベント
+   - イベントに tenant、rule id、悪いフィードバック件数、ウィンドウを含める
 
-2. Linear issue created
-   - label: `trigger:rule-performance-alert`, `trigger:dummy-alert`
-   - phase sub-issues created
-   - Event Log thread created
+2. Linear issue 作成
+   - ラベル: `trigger:rule-performance-alert`, `trigger:dummy-alert`
+   - フェーズ用サブ issue を作成
+   - Event Log スレッドを作成
 
-3. Evidence collected
-   - worker gathers dummy or real evidence
-   - affected rule and diagnosis are posted
+3. 証跡収集
+   - worker がダミーまたは実証跡を収集
+   - 影響ルールと診断結果を投稿
 
-4. Diagnosis and proposal
-   - worker proposes fix
-   - SV approves or requests changes
+4. 診断と提案
+   - worker が修正案を提案
+   - SV が承認または変更依頼
 
-5. PR / backtest / merge / announcement
-   - same as MVP1 after proposal approval
-
+5. PR / バックテスト / マージ / 周知
+   - 提案承認後は MVP1 と同じフロー

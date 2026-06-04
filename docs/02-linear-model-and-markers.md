@@ -1,37 +1,37 @@
-# Linear Model and Markers
+# Linear モデルとマーカー
 
-## Team and Project
+## チームとプロジェクト
 
-Future state:
+将来像:
 
-- Create a private Linear team such as `SV Ops`.
-- Create one Linear Project per tenant.
-- Suggested project naming: `SV Ops: <tenant_name>`.
+- `SV Ops` のようなプライベート Linear チームを作成する。
+- テナントごとに 1 つの Linear Project を作成する。
+- プロジェクト名の例: `SV Ops: <tenant_name>`。
 
-MVP starting point:
+MVP の起点:
 
-- Use the existing `approval_agent` team.
-- Use the existing project `SVのエスカレ・ルール変更周知などを複数テナント持てるようにする運用を考える` for cross-cutting design and implementation tasks.
+- 既存の `approval_agent` チームを使う。
+- 横断的な設計・実装タスクには、既存プロジェクト `SVのエスカレ・ルール変更周知などを複数テナント持てるようにする運用を考える` を使う。
 
-## Issue Grain
+## Issue の粒度
 
-A parent issue is one delivery unit.
+親 issue は 1 つの配信単位。
 
-Entry points:
+入口:
 
-- accounting inquiry
-- operator escalation
-- rule performance alert from an agent
+- 経理からの問い合わせ
+- オペレーターからのエスカレーション
+- エージェントからのルール性能アラート
 
-Completion conditions:
+完了条件:
 
-- rule update is delivered and announced
-- or the event is explicitly marked as a one-off decision
-- or ownership is transferred to another product / operations issue
+- ルール更新が配信され、周知まで完了した
+- またはイベントがワンオフ判断として明示的にマークされた
+- または別のプロダクト / 運用 issue へオーナーシップが移管された
 
-## Phases as Sub-Issues
+## フェーズ（サブ issue）
 
-MVP1 phases:
+MVP1 のフェーズ:
 
 1. Intake / 問い合わせ受付
 2. Accounting Discussion / 経理相談
@@ -42,7 +42,7 @@ MVP1 phases:
 7. Merge & Delivery / merge・本番反映
 8. Announcement / 変更周知
 
-MVP2 phases:
+MVP2 のフェーズ:
 
 1. Alert Intake / 性能低下検知
 2. Evidence Collection / 証跡収集
@@ -53,38 +53,38 @@ MVP2 phases:
 7. Merge & Delivery / merge・本番反映
 8. Announcement / 変更周知
 
-## Status, Label, and Assignee
+## ステータス・ラベル・担当者
 
-Status expresses execution state. Labels express classification and auxiliary routing.
+ステータスは実行状態を表す。ラベルは分類と補助的なルーティングを表す。
 
-Use existing statuses first:
+まず既存ステータスを使う:
 
-- `Triage`: entry point
-- `Todo`: not started
-- `In Progress`: SV or agent is working
-- `In Review`: SV review / PR review
-- `Done`: completed
-- `Canceled`: no rule change, canceled, or transferred
+- `Triage`: 入口
+- `Todo`: 未着手
+- `In Progress`: SV またはエージェントが作業中
+- `In Review`: SV レビュー / PR レビュー
+- `Done`: 完了
+- `Canceled`: ルール変更なし、キャンセル、または移管
 
-Assignee expresses who has the ball:
+担当者（assignee）はボールの所在を表す:
 
-- SV decision needed: assign to SV
-- agent / local worker work needed: assign to bot / agent account
-- before a bot account exists: keep the SV as assignee and use markers/comments to express agent ownership
+- SV の判断が必要: SV に assign
+- エージェント / ローカル worker の作業が必要: bot / エージェントアカウントに assign
+- bot アカウントがまだない場合: SV を assign のままにし、マーカー / コメントでエージェント側のオーナーシップを表現する
 
-## Comment Threads
+## コメントスレッド
 
-Each parent delivery issue should have:
+各親配信 issue には次を持つ:
 
-- Event Log thread: bot / n8n / local worker event records
-- Approval thread: rule proposal, approval, changes requested, rejection
-- PR & Backtest thread: PR URL, backtest result, CR handling
+- Event Log スレッド: bot / n8n / ローカル worker のイベント記録
+- Approval スレッド: ルール提案、承認、変更依頼、却下
+- PR & Backtest スレッド: PR URL、バックテスト結果、CR 対応
 
-Slack conversation uses Linear's official Slack sync thread.
+Slack の会話は Linear 公式の Slack 同期スレッドを使う。
 
-## Marker Syntax
+## マーカー構文
 
-Use one-line markers readable by humans and parsable by local worker.
+人間が読め、ローカル worker がパースできる 1 行マーカーを使う。
 
 ```md
 [SV_ACTION id=act_YYYYMMDD_NNN type=<action_type> target=<target> status=requested]
@@ -94,5 +94,4 @@ Use one-line markers readable by humans and parsable by local worker.
 [SV_EVENT id=evt_YYYYMMDD_NNN type=<event_type> status=done source=<source>]
 ```
 
-Dangerous operations, such as Slack posting, PR creation, production delivery, and announcements, require an explicit `SV_APPROVAL` marker in Linear.
-
+Slack 投稿、PR 作成、本番配信、変更周知など危険な操作には、Linear 上の明示的な `SV_APPROVAL` マーカーが必須。
