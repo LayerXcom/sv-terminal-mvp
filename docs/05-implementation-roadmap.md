@@ -16,6 +16,7 @@ docs/archive/20260603-hitl-sv-terminal-requirements/
 
 - `BAA-1064`: Linear 運用モデルとマーカー構文
 - `BAA-1065`: n8n イベントキュースキーマとポーリングプロトコル
+- `BAA-1066`: Slack 問い合わせから Linear issue 同期
 
 ## 次の作業
 
@@ -29,6 +30,8 @@ docs/archive/20260603-hitl-sv-terminal-requirements/
 - Event Log コメント作成を定義する
 - 公式 Slack 同期の紐づけを定義する
 - 重複 / リプレイ / スレッド返信の扱いを定義する
+
+仕様: [Slack 問い合わせから Linear issue 同期](06-slack-inquiry-linear-sync.md)
 
 ### BAA-1067: 意思決定からルール提案までの HITL
 
