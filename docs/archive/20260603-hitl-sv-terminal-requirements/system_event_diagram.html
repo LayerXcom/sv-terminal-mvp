@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SV Terminal MVP System Event Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d7dde8;
+      --linear: #5e6ad2;
+      --slack: #4a154b;
+      --n8n: #ea4b71;
+      --github: #181717;
+      --agent: #168a5c;
+      --sv: #d97706;
+      --warn: #b45309;
+      --shadow: 0 16px 42px rgba(23, 32, 51, 0.08);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 20px 28px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1 {
+      font-size: 26px;
+      line-height: 1.2;
+      margin: 0 0 8px;
+      font-weight: 760;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 1180px;
+    }
+
+    main {
+      padding: 22px 28px 40px;
+      max-width: 1680px;
+      margin: 0 auto;
+    }
+
+    .lane-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .lane {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-left-width: 5px;
+      border-radius: var(--radius);
+      min-height: 116px;
+      padding: 14px 14px 12px;
+      box-shadow: 0 5px 16px rgba(23, 32, 51, 0.04);
+    }
+
+    .lane[data-role="sv"] { border-left-color: var(--sv); }
+    .lane[data-role="linear"] { border-left-color: var(--linear); }
+    .lane[data-role="n8n"] { border-left-color: var(--n8n); }
+    .lane[data-role="pc"] { border-left-color: var(--agent); }
+    .lane[data-role="github"] { border-left-color: var(--github); }
+    .lane[data-role="slack"] { border-left-color: var(--slack); }
+
+    .lane-title {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 760;
+      margin-bottom: 8px;
+    }
+
+    .logo {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      flex: 0 0 26px;
+    }
+
+    .emoji-logo {
+      width: 26px;
+      height: 26px;
+      display: inline-grid;
+      place-items: center;
+      font-size: 23px;
+      flex: 0 0 26px;
+    }
+
+    .lane p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .panel-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.5;
+      text-align: right;
+      max-width: 560px;
+    }
+
+    .diagram-wrap {
+      overflow: auto;
+      padding: 14px 16px 18px;
+      background:
+        linear-gradient(rgba(23, 32, 51, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 32, 51, 0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    .mermaid {
+      min-width: 1180px;
+      display: flex;
+      justify-content: center;
+      font-size: 17px;
+    }
+
+    .mermaid svg {
+      font-size: 17px !important;
+      max-width: none !important;
+    }
+
+    .mermaid .nodeLabel,
+    .mermaid .edgeLabel {
+      font-size: 16px !important;
+      line-height: 1.35 !important;
+    }
+
+    .mermaid .edgeLabel {
+      font-weight: 700 !important;
+    }
+
+    .mermaid .edgeLabel p,
+    .mermaid .edgeLabel span {
+      background: rgba(255, 255, 255, 0.94) !important;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      border-radius: 4px;
+      padding: 3px 6px;
+      color: #172033 !important;
+    }
+
+    .mermaid img {
+      width: 44px !important;
+      max-width: 44px !important;
+      height: 44px !important;
+      max-height: 44px !important;
+      object-fit: contain !important;
+      display: block !important;
+      margin: 0 auto 7px !important;
+    }
+
+    .mermaid .label div {
+      min-width: 126px;
+      max-width: 176px;
+      white-space: normal;
+      overflow: visible;
+      padding: 2px 4px;
+    }
+
+    .mermaid b {
+      font-size: 17px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .flow-list {
+      display: grid;
+      gap: 10px;
+      padding: 16px 18px 18px;
+    }
+
+    .workflow-panel .diagram-wrap {
+      display: none;
+    }
+
+    .event-chain {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(112px, 1fr));
+      gap: 10px;
+      padding: 18px;
+      align-items: stretch;
+    }
+
+    .event-node {
+      min-height: 126px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 12px 10px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 6px;
+      position: relative;
+    }
+
+    .event-node::after {
+      content: "→";
+      position: absolute;
+      right: -13px;
+      top: 44%;
+      color: #64748b;
+      font-weight: 800;
+      font-size: 18px;
+      z-index: 2;
+    }
+
+    .event-node:last-child::after {
+      content: "";
+    }
+
+    .event-icon {
+      font-size: 24px;
+      line-height: 1;
+      height: 28px;
+    }
+
+    .event-title {
+      font-size: 13px;
+      line-height: 1.28;
+      font-weight: 780;
+    }
+
+    .event-copy {
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.45;
+    }
+
+    .event-node[data-owner="sv"] { border-top: 4px solid var(--sv); }
+    .event-node[data-owner="linear"] { border-top: 4px solid var(--linear); }
+    .event-node[data-owner="n8n"] { border-top: 4px solid var(--n8n); }
+    .event-node[data-owner="agent"] { border-top: 4px solid var(--agent); }
+    .event-node[data-owner="github"] { border-top: 4px solid var(--github); }
+
+    .step {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: #fff;
+    }
+
+    .num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #eef2ff;
+      color: #3340a3;
+      font-weight: 760;
+      font-size: 13px;
+    }
+
+    .step h3 {
+      font-size: 14px;
+      margin: 0 0 3px;
+      line-height: 1.32;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.48;
+    }
+
+    .badge {
+      align-self: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11.5px;
+      font-weight: 720;
+      white-space: nowrap;
+      background: #f1f5f9;
+      color: #334155;
+    }
+
+    .badge.sv { background: #fff7ed; color: #9a3412; }
+    .badge.agent { background: #ecfdf5; color: #047857; }
+    .badge.linear { background: #eef2ff; color: #3942b7; }
+    .badge.n8n { background: #fff1f2; color: #be123c; }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px 18px 18px;
+    }
+
+    .data-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px;
+      min-height: 172px;
+    }
+
+    .data-card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .data-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.56;
+    }
+
+    .marker {
+      margin-top: 10px;
+      padding: 10px;
+      background: #0f172a;
+      color: #e5e7eb;
+      border-radius: 6px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre;
+    }
+
+    @media (max-width: 1120px) {
+      header, main {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .lane-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .data-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .event-chain {
+        grid-template-columns: 1fr;
+      }
+
+      .event-node::after {
+        content: "↓";
+        right: auto;
+        top: auto;
+        bottom: -18px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .panel-note {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SV Terminal MVP System Event Flow</h1>
+    <p class="subtitle">
+      LinearをSVのSSoTにし、Slack相談、n8nイベントキュー、エンジニアPC上のlocal worker、Codex、GitHub PR、本番反映確認をつなぐMVP構成。
+      SVの操作面は薄く保ち、重い実行はlocal PCのpoll workerに集約する。
+    </p>
+  </header>
+
+  <main>
+    <section class="lane-grid" aria-label="Responsibilities">
+      <article class="lane" data-role="slack">
+        <div class="lane-title"><img class="logo" src="https://a.slack-edge.com/80588/marketing/img/icons/icon_slack_hash_colored.png" alt="" />Slack</div>
+        <p>問い合わせ専用channelと経理相談thread。投稿内容はLinear公式syncでissueに蓄積する。</p>
+      </article>
+      <article class="lane" data-role="linear">
+        <div class="lane-title"><img class="logo" src="https://cdn.simpleicons.org/linear/5E6AD2" alt="" />Linear</div>
+        <p>private team、tenant Project、親issue、phase sub issue、Event Log comment threadを持つ。</p>
+      </article>
+      <article class="lane" data-role="sv">
+        <div class="lane-title"><span class="emoji-logo">👩‍✈️</span>SV Chrome</div>
+        <p>SV_ACTION marker挿入、proposal承認、周知文承認を補助。SVの操作面は薄く保つ。</p>
+      </article>
+      <article class="lane" data-role="n8n">
+        <div class="lane-title"><img class="logo" src="https://cdn.simpleicons.org/n8n/EA4B71" alt="" />n8n</div>
+        <p>Webhook、routing、audit log、Data Table queue。local workerはここをpollする。</p>
+      </article>
+      <article class="lane" data-role="pc">
+        <div class="lane-title"><span class="emoji-logo">🧑‍💻</span>Engineer PC</div>
+        <p>localops-linear-bridge。Linear/n8nをpollし、Codex、backtest、PR作成、本番確認を実行。</p>
+      </article>
+      <article class="lane" data-role="github">
+        <div class="lane-title"><img class="logo" src="https://cdn.simpleicons.org/github/181717" alt="" />GitHub</div>
+        <p>approval_rulesのPR、review、merge。Linear連携でPR状態をissueへ戻す。</p>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>全体構成図</h2>
+        <p class="panel-note">エンジニアPCはinbound portを開けず、n8n queueとLinear APIをpollする。</p>
+      </div>
+      <div class="diagram-wrap">
+        <pre class="mermaid">
+%%{init: {"securityLevel":"loose","flowchart":{"htmlLabels":true,"nodeSpacing":58,"rankSpacing":76},"theme":"base","themeVariables":{"fontFamily":"Inter, ui-sans-serif","fontSize":"17px","primaryColor":"#ffffff","primaryBorderColor":"#d0d7de","lineColor":"#64748b"}}}%%
+flowchart LR
+  classDef human fill:#fff7ed,stroke:#fb923c,stroke-width:1.5px,color:#111827;
+  classDef product fill:#ffffff,stroke:#cbd5e1,stroke-width:1.5px,color:#111827;
+  classDef queue fill:#ecfeff,stroke:#06b6d4,stroke-width:1.5px,color:#111827;
+  classDef local fill:#f0fdf4,stroke:#22c55e,stroke-width:1.5px,color:#111827;
+  classDef repo fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#111827;
+  classDef optional fill:#f8fafc,stroke:#94a3b8,stroke-dasharray: 6 4,color:#475569;
+
+  SV["<div><img src='https://cdn.simpleicons.org/googlechrome/4285F4'/><b>SV Chrome</b><br/>👩‍✈️ approve<br/>marker</div>"]:::human
+  Slack["<div><img src='https://a.slack-edge.com/80588/marketing/img/icons/icon_slack_hash_colored.png'/><b>Slack</b><br/>inquiry channel<br/>accounting thread</div>"]:::product
+  N8N["<div><img src='https://cdn.simpleicons.org/n8n/EA4B71'/><b>n8n</b><br/>webhook<br/>routing</div>"]:::queue
+  Queue["<div><img src='https://cdn.simpleicons.org/n8n/EA4B71'/><b>Event Queue</b><br/>Data Table<br/>audit log</div>"]:::queue
+  Linear["<div><img src='https://cdn.simpleicons.org/linear/5E6AD2'/><b>Linear</b><br/>issue / phases<br/>SV source of truth</div>"]:::product
+  EventLog["<div><img src='https://cdn.simpleicons.org/linear/5E6AD2'/><b>Event Log</b><br/>comment thread</div>"]:::product
+  PC["<div><span style='font-size:28px'>🧑‍💻</span><br/><b>Engineer PC</b><br/>local worker<br/>outbound only</div>"]:::local
+  Codex["<div><span style='font-size:28px'>🤖</span><br/><b>Codex</b><br/>draft / edit<br/>resume</div>"]:::local
+  Rules["<div><span style='font-size:28px'>📁</span><br/><b>approval_rules</b><br/>worktree<br/>backtest</div>"]:::repo
+  GitHub["<div><img src='https://cdn.simpleicons.org/github/181717'/><b>GitHub</b><br/>PR / review<br/>merge</div>"]:::product
+  Prod["<div><span style='font-size:28px'>🚀</span><br/><b>Production</b><br/>rule version<br/>smoke</div>"]:::repo
+  Sheet["<div><span style='font-size:28px'>📊</span><br/><b>Sheet</b><br/>backup queue</div>"]:::optional
+
+  Slack -- "event" --> N8N
+  N8N -- "create" --> Linear
+  N8N -- "queue" --> Queue
+  Linear -- "sync" <--> Slack
+  SV -- "action" --> Linear
+  SV -- "send" --> N8N
+  Linear -- "thread" --> EventLog
+  PC -- "poll" --> Queue
+  PC -- "read" --> Linear
+  PC -- "write" --> EventLog
+  PC -- "run" --> Codex
+  Codex -- "edit" --> Rules
+  Rules -- "open PR" --> GitHub
+  GitHub -- "status" --> Linear
+  GitHub -- "merged" --> PC
+  PC -- "verify" --> Prod
+  PC -- "draft" --> Linear
+  Linear -- "announce" --> Slack
+  N8N -. "backup" .-> Sheet
+  PC -. "poll" .-> Sheet
+        </pre>
+      </div>
+    </section>
+
+    <section class="two-col">
+      <article class="panel workflow-panel">
+        <div class="panel-header">
+          <h2>MVP1: Slack問い合わせからルール反映</h2>
+          <p class="panel-note">経理相談をLinearに蓄積し、方針確定後にagentがPR化する。</p>
+        </div>
+        <div class="event-chain" aria-label="MVP1 event flow">
+          <div class="event-node" data-owner="sv"><div class="event-icon">💬</div><div class="event-title">Slack問い合わせ</div><div class="event-copy">SVが専用channelへ投稿。経理相談threadの起点になる。</div></div>
+          <div class="event-node" data-owner="n8n"><div class="event-icon">🔀</div><div class="event-title">n8n bootstrap</div><div class="event-copy">Slack eventを受け、Linear作成イベントをqueueする。</div></div>
+          <div class="event-node" data-owner="linear"><div class="event-icon">◇</div><div class="event-title">Linear issue</div><div class="event-copy">tenant Project、親issue、phase sub issue、Event Logを作る。</div></div>
+          <div class="event-node" data-owner="sv"><div class="event-icon">👩‍✈️</div><div class="event-title">方針確定</div><div class="event-copy">SVが相談結果を確認し、SV_ACTION markerでagentへ渡す。</div></div>
+          <div class="event-node" data-owner="agent"><div class="event-icon">🤖</div><div class="event-title">ルール下書き</div><div class="event-copy">local workerがCodexを起動し、proposalをLinearへ投稿。</div></div>
+          <div class="event-node" data-owner="github"><div class="event-icon">⑂</div><div class="event-title">PR / Review</div><div class="event-copy">approval_rulesを編集し、PR・backtest・reviewを実施。</div></div>
+          <div class="event-node" data-owner="agent"><div class="event-icon">🚀</div><div class="event-title">本番確認</div><div class="event-copy">merge後にrule versionとsmokeを確認し、Linearに記録。</div></div>
+          <div class="event-node" data-owner="linear"><div class="event-icon">📣</div><div class="event-title">周知 / Close</div><div class="event-copy">Slackへ変更宣言。sub issue完了後に親issueをclose。</div></div>
+        </div>
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+%%{init: {"securityLevel":"loose","flowchart":{"htmlLabels":true,"nodeSpacing":48,"rankSpacing":62},"theme":"base","themeVariables":{"fontFamily":"Inter, ui-sans-serif","fontSize":"17px","lineColor":"#64748b"}}}%%
+flowchart TD
+  classDef human fill:#fff7ed,stroke:#fb923c,color:#111827;
+  classDef product fill:#ffffff,stroke:#cbd5e1,color:#111827;
+  classDef worker fill:#f0fdf4,stroke:#22c55e,color:#111827;
+  classDef queue fill:#ecfeff,stroke:#06b6d4,color:#111827;
+  classDef gate fill:#fef9c3,stroke:#eab308,color:#111827;
+
+  S1["💬<br/><b>Slack</b><br/>SV starts inquiry"]:::product
+  N1["🔀<br/><b>n8n</b><br/>issue bootstrap"]:::queue
+  L1["◇<br/><b>Linear issue</b><br/>Project, labels, phases"]:::product
+  L2["🔗<br/><b>Slack sync</b><br/>discussion archive"]:::product
+  SV1["👩‍✈️<br/><b>SV</b><br/>decision marker"]:::human
+  Q1["📥<br/><b>n8n Queue</b><br/>needs_rule_draft"]:::queue
+  W1["🧑‍💻<br/><b>Local worker</b><br/>fetch Linear context"]:::worker
+  A1["🤖<br/><b>Codex</b><br/>rule proposal"]:::worker
+  G1["<b>Approval Gate</b><br/>approve / CR / reject"]:::gate
+  PR1["⑂<br/><b>GitHub PR</b><br/>rules.json + backtest"]:::product
+  M1["✓<br/><b>Review + Merge</b>"]:::product
+  V1["🧑‍💻<br/><b>Verify</b><br/>production rule version"]:::worker
+  A2["📣<br/><b>Announce</b><br/>rule change"]:::product
+  D1["✓<br/><b>Done</b>"]:::product
+
+  S1 --> N1 --> L1 --> L2 --> SV1 --> Q1
+  Q1 --> W1 --> A1 --> G1
+  G1 -- "approved" --> PR1 --> M1 --> V1 --> A2 --> D1
+  G1 -- "CR" --> A1
+  G1 -- "one-off / reject" --> D1
+          </pre>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h2>MVP1 タッチポイント</h2>
+          <p class="panel-note">SVが触る場所だけを絞る。</p>
+        </div>
+        <div class="flow-list">
+          <div class="step"><span class="num">1</span><div><h3>問い合わせ開始</h3><p>SVが専用Slack channelへ投稿。n8nがLinear issueを自動作成。</p></div><span class="badge sv">SV</span></div>
+          <div class="step"><span class="num">2</span><div><h3>経理相談</h3><p>Slack threadで会話。Linear sync threadに会話が蓄積される。</p></div><span class="badge sv">SV</span></div>
+          <div class="step"><span class="num">3</span><div><h3>方針確定</h3><p>SV_ACTION markerで決定内容を固定し、agentに渡す。</p></div><span class="badge linear">Linear</span></div>
+          <div class="step"><span class="num">4</span><div><h3>ルール下書き</h3><p>local workerがCodexを起動し、proposalをLinearへ投稿。</p></div><span class="badge agent">Agent</span></div>
+          <div class="step"><span class="num">5</span><div><h3>提案承認</h3><p>SVがproposal threadでapprove / CR / reject。</p></div><span class="badge sv">SV</span></div>
+          <div class="step"><span class="num">6</span><div><h3>PR・本番確認・周知</h3><p>PR作成、review、merge、本番反映確認、Slack周知まで進める。</p></div><span class="badge agent">Agent</span></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="two-col">
+      <article class="panel workflow-panel">
+        <div class="panel-header">
+          <h2>MVP2: 性能低下アラートからルール修正</h2>
+          <p class="panel-note">MVPではbad feedback検知をdummy eventで代替する。</p>
+        </div>
+        <div class="event-chain" aria-label="MVP2 event flow">
+          <div class="event-node" data-owner="agent"><div class="event-icon">🧪</div><div class="event-title">Dummy alert</div><div class="event-copy">bad feedback閾値超過を模したイベントを発火。</div></div>
+          <div class="event-node" data-owner="n8n"><div class="event-icon">📥</div><div class="event-title">n8n queue</div><div class="event-copy">rule_performance_alertとしてeventを蓄積。</div></div>
+          <div class="event-node" data-owner="linear"><div class="event-icon">◇</div><div class="event-title">Linear起票</div><div class="event-copy">tenant Project、trigger label、phase sub issueを作成。</div></div>
+          <div class="event-node" data-owner="agent"><div class="event-icon">🔎</div><div class="event-title">証跡収集</div><div class="event-copy">対象rule、bad feedback、原因仮説をEvent Logへまとめる。</div></div>
+          <div class="event-node" data-owner="sv"><div class="event-icon">👩‍✈️</div><div class="event-title">SV承認</div><div class="event-copy">修正方針をapprove / CR / reject。</div></div>
+          <div class="event-node" data-owner="github"><div class="event-icon">⑂</div><div class="event-title">PR / Backtest</div><div class="event-copy">修正PRを作成し、backtestとreviewを通す。</div></div>
+          <div class="event-node" data-owner="agent"><div class="event-icon">🚀</div><div class="event-title">本番確認</div><div class="event-copy">merge後にproduction反映を確認。</div></div>
+          <div class="event-node" data-owner="linear"><div class="event-icon">📣</div><div class="event-title">周知 / Close</div><div class="event-copy">変更宣言を投稿し、issueをclose。</div></div>
+        </div>
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+%%{init: {"securityLevel":"loose","flowchart":{"htmlLabels":true,"nodeSpacing":48,"rankSpacing":62},"theme":"base","themeVariables":{"fontFamily":"Inter, ui-sans-serif","fontSize":"17px","lineColor":"#64748b"}}}%%
+flowchart TD
+  classDef human fill:#fff7ed,stroke:#fb923c,color:#111827;
+  classDef product fill:#ffffff,stroke:#cbd5e1,color:#111827;
+  classDef worker fill:#f0fdf4,stroke:#22c55e,color:#111827;
+  classDef queue fill:#ecfeff,stroke:#06b6d4,color:#111827;
+  classDef gate fill:#fef9c3,stroke:#eab308,color:#111827;
+
+  D0["🧪<br/><b>Dummy alert</b><br/>bad feedback threshold"]:::worker
+  N0["📥<br/><b>n8n Queue</b><br/>rule_performance_alert"]:::queue
+  W0["🧑‍💻<br/><b>Local worker</b><br/>create Linear issue"]:::worker
+  L0["◇<br/><b>Linear issue</b><br/>assignee=agent"]:::product
+  E0["🤖<br/><b>Evidence</b><br/>collect / diagnose"]:::worker
+  P0["🤖<br/><b>Proposal</b><br/>fix plan"]:::worker
+  G0["<b>Approval Gate</b><br/>SV approve / CR / reject"]:::gate
+  PR0["⑂<br/><b>GitHub PR</b><br/>rules.json + backtest"]:::product
+  M0["✓<br/><b>Review + Merge</b>"]:::product
+  V0["🧑‍💻<br/><b>Verify</b><br/>production"]:::worker
+  S0["📣<br/><b>Announce</b><br/>rule change"]:::product
+  Done["✓<br/><b>Done</b>"]:::product
+
+  D0 --> N0 --> W0 --> L0 --> E0 --> P0 --> G0
+  G0 -- "approved" --> PR0 --> M0 --> V0 --> S0 --> Done
+  G0 -- "CR" --> P0
+  G0 -- "no-change" --> Done
+          </pre>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h2>MVP2 タッチポイント</h2>
+          <p class="panel-note">agent起点でもSVの判断ゲートはLinearに置く。</p>
+        </div>
+        <div class="flow-list">
+          <div class="step"><span class="num">1</span><div><h3>dummy alert</h3><p>n8nまたはlocal workerが特定ruleの性能低下イベントを作る。</p></div><span class="badge n8n">n8n</span></div>
+          <div class="step"><span class="num">2</span><div><h3>Linear起票</h3><p>tenant Project、trigger label、phase sub issueを作成。</p></div><span class="badge agent">Agent</span></div>
+          <div class="step"><span class="num">3</span><div><h3>証跡と診断</h3><p>bad feedback、affected rule、原因仮説をEvent Logへ集約。</p></div><span class="badge agent">Agent</span></div>
+          <div class="step"><span class="num">4</span><div><h3>修正案承認</h3><p>SVがproposal threadで修正方針を承認またはCR。</p></div><span class="badge sv">SV</span></div>
+          <div class="step"><span class="num">5</span><div><h3>PRとdelivery</h3><p>以後はMVP1と同じ。PR、backtest、merge、本番確認、周知。</p></div><span class="badge agent">Agent</span></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Linear / n8n / Worker データ設計</h2>
+        <p class="panel-note">イベント本文はLinear/Slackに残し、n8n queueは最小メタデータだけを持つ。</p>
+      </div>
+      <div class="data-grid">
+        <article class="data-card">
+          <h3>Linear issue</h3>
+          <ul>
+            <li>private team: SV Ops</li>
+            <li>Project: tenant</li>
+            <li>parent issue: delivery unit</li>
+            <li>sub issues: phases</li>
+            <li>assignee: ball owner</li>
+            <li>labels: trigger / action / resolution / risk</li>
+          </ul>
+        </article>
+        <article class="data-card">
+          <h3>Event Log thread</h3>
+          <ul>
+            <li>botが親issue作成時に固定commentを作る</li>
+            <li>threadにSV_EVENTを追記</li>
+            <li>proposalやapprovalは別thread</li>
+            <li>処理結果はSV_ACTION_RESULTで戻す</li>
+          </ul>
+          <div class="marker">[SV_EVENT id=evt_001 type=pr_created status=done]</div>
+        </article>
+        <article class="data-card">
+          <h3>n8n queue</h3>
+          <ul>
+            <li>event_id</li>
+            <li>linear_issue_id</li>
+            <li>type / status / dedupe_key</li>
+            <li>claimed_by / lease_until</li>
+            <li>attempts / last_error / processed_at</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        htmlLabels: true,
+        curve: "basis",
+        padding: 16,
+        nodeSpacing: 52,
+        rankSpacing: 68
+      }
+    });
+  </script>
+</body>
+</html>

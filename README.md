@@ -46,6 +46,7 @@ An agent detects a rule-performance degradation. For MVP, this starts from a dum
 - [n8n Event Queue Protocol](docs/03-n8n-event-queue-protocol.md)
 - [MVP Event Design](docs/04-mvp-event-design.md)
 - [Implementation Roadmap](docs/05-implementation-roadmap.md)
+- [Archived Working Notes](docs/archive/20260603-hitl-sv-terminal-requirements/)
 
 ## Current Linear Tracking
 
@@ -56,3 +57,12 @@ An agent detects a rule-performance degradation. For MVP, this starts from a dum
 - Next:
   - `BAA-1066`: Slack inquiry to Linear issue sync flow
 
+## Working Note Migration
+
+The initial working notes from `z/issues/20260603_hitl_sv_terminal_requirements` were copied into:
+
+```text
+docs/archive/20260603-hitl-sv-terminal-requirements/
+```
+
+Going forward, this repository is the canonical place for specifications, implementation notes, and design changes.

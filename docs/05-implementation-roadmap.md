@@ -2,6 +2,16 @@
 
 Tracked in Linear under parent issue `BAA-1030`.
 
+## Repository Policy
+
+This repository is the canonical place for SV Terminal MVP specifications, implementation notes, and design changes.
+
+The original working notes from `z/issues/20260603_hitl_sv_terminal_requirements` are archived under:
+
+```text
+docs/archive/20260603-hitl-sv-terminal-requirements/
+```
+
 ## Done
 
 - `BAA-1064`: Linear operation model and marker syntax
@@ -60,4 +70,3 @@ Tracked in Linear under parent issue `BAA-1030`.
 - Define n8n event buttons
 - Define local helper entrypoints
 - Define MVP non-goals
-
