@@ -266,3 +266,98 @@ BAA-1067 では、実装コードに入らず次を決める。
 3. one-off decision / no-change / product transfer は MVP1 で明示的に扱うか、まずは rule_change だけに絞るか。
 4. Approval thread の resolve は PR 作成成功時でよいか。
 
+## 2026-06-04 壁打ちで決まったこと
+
+### decision memo の source
+
+decision memo の source は、Linear 上の `capture_decision` marker だけでは足りない。marker は「この相談を次フェーズへ進める」というトリガーであり、根拠そのものは Slack / Linear / GitHub などの参照可能な証跡に置く。
+
+MVP の source 候補:
+
+- Slack sync thread URL
+- Slack permalink
+- Linear issue URL
+- Linear comment URL
+- linked document URL
+- PR / GitHub issue URL
+
+最小構成では、SV が `capture_decision` marker を置けば、agent は decision memo を自動生成し、そのまま rule proposal 生成まで進んでよい。decision memo 自体への SV 承認は挟まない。
+
+理由:
+
+- SV のタッチポイントを薄く保つため
+- decision memo は承認対象ではなく、proposal 生成の中間成果物だから
+- 根拠 URL が残っていれば、SV は proposal review 時に戻って確認できるから
+
+### proposal approval の意味
+
+MVP では proposal approval は「ルール方針の承認」とする。
+
+ただし、方針承認されたら agent はそのまま PR open まで進んでよい。つまり、MVP では「ルール方針承認」と「PR 作成承認」を分けない。
+
+```text
+proposal approved
+  -> local PC agent starts PR creation
+  -> PR open
+  -> PR / Backtest phase
+```
+
+分けない理由:
+
+- SV の承認ポイントを増やしすぎないため
+- PR review で実装差分は再度確認できるため
+- proposal comment に expected diff / affected rules / risks を含めれば、PR 作成前判断として十分だから
+
+将来は、危険度が高い proposal だけ `requires_pr_open_approval=true` のように分けてもよい。
+
+### Approval thread の次フェーズ
+
+Approval thread の次フェーズは `PR & Backtest / PR・バックテスト`。
+
+したがって thread resolve の候補は次のどちらか。
+
+1. proposal approved 時に resolve
+2. PR open 成功時に resolve
+
+MVP 推奨は 2。proposal approved 後に PR 作成が失敗する可能性があるため、PR URL が Linear に戻るまでは Approval thread を open にしておく。
+
+```text
+SV approval marker
+  -> pr_create_requested event
+  -> PR open success
+  -> PR URL posted
+  -> Approval thread resolved
+  -> PR & Backtest sub issue active
+```
+
+### 用語整理
+
+`rule_change`
+
+- ルールの source of truth に変更を入れて完了する
+- 通常は PR / backtest / merge / production verification / announcement へ進む
+
+`one_off_decision`
+
+- 今回の個別案件では判断できたが、一般ルールにはしない
+- 例: 「この申請は承認してよいが、今後の全件基準にはしない」
+- PR は作らず、判断内容と根拠を記録して close する
+
+`no_change`
+
+- 調査した結果、既存ルールや現行運用で足りる
+- 例: 「既にルールに書かれており、今回の問題は周知/見落としだった」
+- PR は作らない。必要なら周知や運用メモだけ残す
+
+`policy_pending`
+
+- 経理 / 顧客 / 社内方針が未決で、ルール化できない
+- issue は close せず、Waiting Accounting などに戻す
+
+`transferred_product`
+
+- ルール変更ではなく、プロダクト / フォーム / UI / master data / ops runbook 側で解くべき
+- 例: 申請フォームの入力項目不足、内訳マスタ、bpo-desktop-app 機能不足
+- 移管先 issue を作り、元 issue は transfer 済みとして close する
+
+MVP1 では `rule_change` を主経路としつつ、`one_off_decision`, `no_change`, `policy_pending`, `transferred_product` の marker だけは最初から持つ。これがないと、すべてが rule_change に吸い込まれる。
