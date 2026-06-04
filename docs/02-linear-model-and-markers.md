@@ -31,16 +31,17 @@ MVP の起点:
 
 ## フェーズ（サブ issue）
 
+フェーズは進捗を見せるための粒度であり、根拠と delivery context を分断するためのものではない。
+特にルール提案の承認後は、同じ `Proposal & Delivery` の文脈に PR / backtest / merge / 本番反映確認を紐づける。
+
 MVP1 のフェーズ:
 
 1. Intake / 問い合わせ受付
 2. Accounting Discussion / 経理相談
 3. Decision Capture / 方針確定
 4. Rule Draft / ルール下書き
-5. SV Review / SVレビュー
-6. PR & Backtest / PR・バックテスト
-7. Merge & Delivery / merge・本番反映
-8. Announcement / 変更周知
+5. Proposal & Delivery / ルール提案・PR管理
+6. Announcement / 変更周知
 
 MVP2 のフェーズ:
 
@@ -48,10 +49,8 @@ MVP2 のフェーズ:
 2. Evidence Collection / 証跡収集
 3. Rule Diagnosis / 原因診断
 4. Rule Draft / 修正案
-5. SV Review / SVレビュー
-6. PR & Backtest / PR・バックテスト
-7. Merge & Delivery / merge・本番反映
-8. Announcement / 変更周知
+5. Proposal & Delivery / ルール提案・PR管理
+6. Announcement / 変更周知
 
 ## ステータス・ラベル・担当者
 
@@ -77,8 +76,8 @@ MVP2 のフェーズ:
 各親配信 issue には次を持つ:
 
 - Event Log スレッド: bot / n8n / ローカル worker のイベント記録
-- Approval スレッド: ルール提案、承認、変更依頼、却下
-- PR & Backtest スレッド: PR URL、バックテスト結果、CR 対応
+- Proposal & Delivery スレッド: ルール提案、承認、変更依頼、却下、PR URL、バックテスト結果、CR 対応、merge、本番反映確認
+- Announcement スレッド: 変更周知文、SV 承認、Slack 投稿結果
 
 Slack の会話は Linear 公式の Slack 同期スレッドを使う。
 

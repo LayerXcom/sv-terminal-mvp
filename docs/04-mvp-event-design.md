@@ -11,7 +11,7 @@
 - ステータス = 実行状態
 - ラベル = トリガー / 解決 / リスク / アクション
 - 担当者 = 現在のオーナー
-- コメントスレッド: Event Log、Approval、PR & Backtest
+- コメントスレッド: Event Log、Proposal & Delivery、Announcement
 
 ### Slack
 
@@ -52,7 +52,7 @@
 
 4. ルール下書き依頼
    - worker がエージェントで提案を起草
-   - Approval スレッドに提案を投稿
+   - Proposal & Delivery スレッドに提案を投稿
    - 担当を SV に移す
 
 5. ルール提案の承認
@@ -63,11 +63,12 @@
    - ローカル PC のエージェントが approval_rules を編集
    - PR を作成
    - バックテストを実行
-   - PR と結果を Linear にリンク
+   - PR と結果を Proposal & Delivery スレッドにリンク
+   - proposal の根拠、承認、PR、backtest、CR、merge 結果を同じ場所で追えるようにする
 
 7. PR レビュー / マージ
    - レビュアーは GitHub / Linear 連携を利用
-   - CR でエージェントを再開
+   - CR でエージェントを再開し、結果を Proposal & Delivery スレッドに戻す
    - マージで配信検証をトリガー
 
 8. 本番検証完了

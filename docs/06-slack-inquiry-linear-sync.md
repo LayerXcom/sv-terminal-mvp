@@ -214,10 +214,8 @@ Resolve this inquiry and decide whether it should become a rule update, one-off 
 2. `Accounting Discussion / 経理相談`
 3. `Decision Capture / 方針確定`
 4. `Rule Draft / ルール下書き`
-5. `SV Review / SVレビュー`
-6. `PR & Backtest / PR・バックテスト`
-7. `Merge & Delivery / merge・本番反映`
-8. `Announcement / 変更周知`
+5. `Proposal & Delivery / ルール提案・PR管理`
+6. `Announcement / 変更周知`
 
 初期状態:
 

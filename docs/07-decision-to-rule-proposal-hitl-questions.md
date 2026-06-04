@@ -197,28 +197,40 @@ CR は PR review ではなく、proposal review の CR。
 
 推奨:
 
-1. SV が Approval thread に CR を返信
+1. SV が Proposal & Delivery thread に CR を返信
 2. marker `decision=changes_requested`
 3. local worker が `rule_proposal_changes_requested` event を作る
 4. agent が issue / decision memo / proposal:v1 / CR comment を読む
-5. `proposal:v2` を同じ Approval thread または新規 comment に出す
+5. `proposal:v2` を同じ Proposal & Delivery thread または新規 comment に出す
 6. assignee を SV に戻す
 
-### 7. Approval thread を resolve するタイミング
+### 7. Proposal & Delivery thread を resolve するタイミング
 
-Linear comment thread の resolve は「このapproval論点は閉じた」という印。
+Linear comment thread の resolve は「この配信単位の管理論点は閉じた」という印。
+
+この thread は、proposal approval で終わる場所ではない。
+proposal 承認後は、そのまま PR / backtest / CR / merge / 本番反映確認までを管理する `Proposal & Delivery thread` として扱う。
+
+理由:
+
+- SV が見たいのは「どの根拠でこの PR が作られたのか」まで含む一続きの文脈
+- proposal と PR を別 thread / 別チケットに分けると、根拠・承認・実装結果の対応が追いにくい
+- PR 作成後も、PR の失敗、backtest、CR、merge 後確認は同じ意思決定から派生した作業
 
 決めること:
 
 - approve した瞬間に resolve するか
 - PR 作成完了後に resolve するか
 - PR merge後に resolve するか
+- 周知完了または親 issue close 時に resolve するか
 
 推奨:
 
-- proposal approval thread は「PR作成eventが成功したら resolve」
-- つまり approve marker だけでは resolve しない
-- PR作成失敗時に未resolveのままにして、SVが状態を追えるようにする
+- Proposal & Delivery thread は PR 作成成功時には resolve しない
+- PR URL、backtest 結果、CR 対応、merge、本番反映確認を同じ thread / 同じ phase issue に積む
+- resolve は、少なくとも PR merge と本番反映確認が完了した後
+- MVP1 では、変更周知まで完了して親 issue を close するタイミングで resolve する
+- PR 作成失敗時も同じ thread に失敗結果を戻し、SV が追加指示できるようにする
 
 ### 8. rule proposal なしで close する経路
 
@@ -246,7 +258,7 @@ BAA-1067 では、実装コードに入らず次を決める。
 3. rule proposal comment format
 4. approval / CR / reject marker
 5. CR resume flow
-6. Approval thread resolve condition
+6. Proposal & Delivery thread resolve condition
 7. rule proposal に進まない close / transfer 経路
 
 ## BAA-1067 でまだ決めないこと
@@ -264,7 +276,7 @@ BAA-1067 では、実装コードに入らず次を決める。
 1. decision memo は agent が自動生成したものを SV が承認するのか、SV が marker だけ置けば agent がそのまま proposal に進んでよいのか。
 2. proposal approval は PR 作成の承認なのか、ルール方針の承認なのか。両方を分ける必要があるか。
 3. one-off decision / no-change / product transfer は MVP1 で明示的に扱うか、まずは rule_change だけに絞るか。
-4. Approval thread の resolve は PR 作成成功時でよいか。
+4. Proposal & Delivery thread の resolve はどの完了条件に置くべきか。
 
 ## 2026-06-04 壁打ちで決まったこと
 
@@ -299,7 +311,7 @@ MVP では proposal approval は「ルール方針の承認」とする。
 proposal approved
   -> local PC agent starts PR creation
   -> PR open
-  -> PR / Backtest phase
+  -> same Proposal & Delivery thread keeps managing PR / backtest / merge
 ```
 
 分けない理由:
@@ -310,24 +322,31 @@ proposal approved
 
 将来は、危険度が高い proposal だけ `requires_pr_open_approval=true` のように分けてもよい。
 
-### Approval thread の次フェーズ
+### Proposal & Delivery thread の扱い
 
-Approval thread の次フェーズは `PR & Backtest / PR・バックテスト`。
+当初は Approval thread を proposal approval 用に閉じ、次フェーズとして `PR & Backtest / PR・バックテスト` を分ける案を考えた。
+しかしこれは採用しない。
 
-したがって thread resolve の候補は次のどちらか。
+SV にとって重要なのは「どの相談・どの decision memo・どの proposal approval を根拠に、その PR が作られたのか」が一目で追えること。
+そのため、proposal approval 後も同じ thread / phase issue を使い続ける。
 
-1. proposal approved 時に resolve
-2. PR open 成功時に resolve
+MVP 推奨:
 
-MVP 推奨は 2。proposal approved 後に PR 作成が失敗する可能性があるため、PR URL が Linear に戻るまでは Approval thread を open にしておく。
+1. proposal approved 時には resolve しない
+2. PR open 成功時にも resolve しない
+3. PR URL、backtest、CR、merge、本番反映確認を同じ Proposal & Delivery thread に積む
+4. 変更周知まで完了し、親 issue を close できる状態になったら resolve する
 
 ```text
 SV approval marker
   -> pr_create_requested event
   -> PR open success
   -> PR URL posted
-  -> Approval thread resolved
-  -> PR & Backtest sub issue active
+  -> backtest result posted
+  -> PR review / CR / merge
+  -> production verification
+  -> announcement completed
+  -> Proposal & Delivery thread resolved
 ```
 
 ### 用語整理
