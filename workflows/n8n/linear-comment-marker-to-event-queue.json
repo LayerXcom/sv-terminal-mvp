@@ -3,25 +3,22 @@
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "sv-terminal-linear-comment-marker-REPLACE_WITH_RANDOM_SUFFIX",
-        "responseMode": "responseNode",
-        "options": {
-          "rawBody": true
-        }
+        "events": [
+          "Issue Comment"
+        ]
       },
-      "id": "webhook-linear-comment-marker",
-      "name": "Linear Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
+      "id": "linear-trigger-issue-comment",
+      "name": "Linear Trigger - Issue Comment",
+      "type": "n8n-nodes-base.linearTrigger",
+      "typeVersion": 1,
       "position": [0, 0]
     },
     {
       "parameters": {
-        "jsCode": "const crypto = require('crypto');\nconst item = $input.first().json;\nconst headers = item.headers || {};\nconst rawBody = item.rawBody || JSON.stringify(item.body || {});\nconst body = typeof item.body === 'string' ? JSON.parse(item.body) : (item.body || item);\nconst secret = $env.LINEAR_WEBHOOK_SECRET;\nif (!secret) throw new Error('LINEAR_WEBHOOK_SECRET is required');\nconst signature = headers['Linear-Signature'] || headers['linear-signature'];\nconst expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');\nif (!signature || signature.replace(/^sha256=/, '') !== expected) throw new Error('Invalid Linear-Signature');\nconst data = body.data || {};\nconst entity = body.type || body.model || body.entity || body.resourceType;\nconst commentBody = data.body || '';\nconst markerMatch = commentBody.match(/\\[SV_APPROVAL\\s+([^\\]]+)\\]/);\nif (entity !== 'Comment' || !markerMatch) return [{ json: { shouldQueue: false, reason: 'not a comment approval marker' } }];\nconst attrs = Object.fromEntries([...markerMatch[1].matchAll(/([A-Za-z_][A-Za-z0-9_]*)=([^\\s]+)/g)].map((m) => [m[1], m[2]]));\nif (attrs.decision !== 'approved' || !String(attrs.target || '').startsWith('proposal:') || !attrs.action_id) return [{ json: { shouldQueue: false, reason: 'not an approved proposal marker' } }];\nconst issue = data.issue || {};\nconst issueIdentifier = issue.identifier || data.issueIdentifier;\nif (!issueIdentifier) throw new Error('Linear issue identifier missing');\nreturn [{ json: { shouldQueue: true, row: { event_id: `evt_linear_${issueIdentifier}_${attrs.action_id}`.replace(/[^A-Za-z0-9_-]/g, '_'), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), source: 'linear', source_event_id: String(body.webhookTimestamp || body.createdAt || body.id || ''), linear_issue_id: issue.id || data.issueId || '', linear_issue_identifier: issueIdentifier, linear_comment_id: data.id || '', tenant_key: '', tenant_project_id: '', type: 'linear_marker_detected', status: 'queued', priority: 2, actor_kind: 'linear_user', actor_id: (data.user || {}).id || data.userId || '', dedupe_key: `linear:${issueIdentifier}:${attrs.action_id}`, payload_json: JSON.stringify({ action_id: attrs.action_id, marker_type: 'SV_APPROVAL', target: attrs.target, decision: attrs.decision }), attempts: 0, claimed_by: '', claimed_at: '', lease_until: '', last_error: '', result_linear_comment_id: '', processed_at: '' } } }];"
+        "jsCode": "const event = $input.first().json;\nconst data = event.data || event;\nconst comment = data.comment || event.comment || data;\nconst issue = data.issue || event.issue || comment.issue || {};\nconst user = data.user || event.user || data.actor || event.actor || comment.user || {};\nconst commentBody = comment.body || data.body || event.body || '';\nconst markerMatch = String(commentBody).match(/\\[SV_APPROVAL\\s+([^\\]]+)\\]/);\nif (!markerMatch) return [{ json: { shouldQueue: false, reason: 'not an approval marker' } }];\nconst attrs = Object.fromEntries([...markerMatch[1].matchAll(/([A-Za-z_][A-Za-z0-9_]*)=([^\\s]+)/g)].map((m) => [m[1], m[2]]));\nif (attrs.decision !== 'approved' || !String(attrs.target || '').startsWith('proposal:') || !attrs.action_id) return [{ json: { shouldQueue: false, reason: 'not an approved proposal marker' } }];\nconst issueIdentifier = issue.identifier || data.issueIdentifier || event.issueIdentifier || issue.key;\nif (!issueIdentifier) throw new Error('Linear issue identifier missing');\nconst commentId = comment.id || data.id || event.id || '';\nreturn [{ json: { shouldQueue: true, row: { event_id: `evt_linear_${issueIdentifier}_${attrs.action_id}`.replace(/[^A-Za-z0-9_-]/g, '_'), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), source: 'linear', source_event_id: String(event.webhookTimestamp || event.createdAt || event.updatedAt || event.id || commentId), linear_issue_id: issue.id || data.issueId || event.issueId || '', linear_issue_identifier: issueIdentifier, linear_comment_id: commentId, tenant_key: '', tenant_project_id: '', type: 'linear_marker_detected', status: 'queued', priority: 2, actor_kind: 'linear_user', actor_id: user.id || data.userId || event.userId || '', dedupe_key: `linear:${issueIdentifier}:${attrs.action_id}`, payload_json: JSON.stringify({ action_id: attrs.action_id, marker_type: 'SV_APPROVAL', target: attrs.target, decision: attrs.decision }), attempts: 0, claimed_by: '', claimed_at: '', lease_until: '', last_error: '', result_linear_comment_id: '', processed_at: '' } } }];"
       },
-      "id": "verify-and-normalize",
-      "name": "Verify and normalize marker",
+      "id": "normalize-marker",
+      "name": "Normalize approval marker",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [280, 0]
@@ -57,32 +54,26 @@
       "position": [840, -80]
     },
     {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { ok: true, queued: $json.shouldQueue || false } }}"
-      },
-      "id": "respond-ok",
-      "name": "Respond OK",
-      "type": "n8n-nodes-base.respondToWebhook",
+      "parameters": {},
+      "id": "ignore-non-queueable",
+      "name": "Ignore non queueable comment",
+      "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [1120, 0]
+      "position": [840, 120]
     }
   ],
   "connections": {
-    "Linear Webhook": {
-      "main": [[{ "node": "Verify and normalize marker", "type": "main", "index": 0 }]]
+    "Linear Trigger - Issue Comment": {
+      "main": [[{ "node": "Normalize approval marker", "type": "main", "index": 0 }]]
     },
-    "Verify and normalize marker": {
+    "Normalize approval marker": {
       "main": [[{ "node": "Queueable?", "type": "main", "index": 0 }]]
     },
     "Queueable?": {
       "main": [
         [{ "node": "Upsert sv_terminal_events row", "type": "main", "index": 0 }],
-        [{ "node": "Respond OK", "type": "main", "index": 0 }]
+        [{ "node": "Ignore non queueable comment", "type": "main", "index": 0 }]
       ]
-    },
-    "Upsert sv_terminal_events row": {
-      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
     }
   },
   "settings": {

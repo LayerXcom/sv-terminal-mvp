@@ -13,15 +13,16 @@ class WorkflowArtifactTests(unittest.TestCase):
         raw = json.dumps(workflow)
         self.assertNotIn("api_key", raw.lower())
         self.assertNotIn("secret_", raw.lower())
-        self.assertIn("LINEAR_WEBHOOK_SECRET", raw)
-        self.assertIn("REPLACE_WITH_RANDOM_SUFFIX", raw)
+        self.assertNotIn("LINEAR_WEBHOOK_SECRET", raw)
         self.assertIn("REPLACE_WITH_SV_TERMINAL_EVENTS_TABLE_ID", raw)
+        self.assertIn("Issue Comment", raw)
 
         node_types = {node["type"] for node in workflow["nodes"]}
-        self.assertIn("n8n-nodes-base.webhook", node_types)
+        self.assertIn("n8n-nodes-base.linearTrigger", node_types)
         self.assertIn("n8n-nodes-base.code", node_types)
         self.assertIn("n8n-nodes-base.dataTable", node_types)
-        self.assertIn("n8n-nodes-base.respondToWebhook", node_types)
+        self.assertNotIn("n8n-nodes-base.webhook", node_types)
+        self.assertNotIn("n8n-nodes-base.respondToWebhook", node_types)
 
 
 if __name__ == "__main__":
