@@ -68,6 +68,8 @@ docs/archive/20260603-hitl-sv-terminal-requirements/
 
 仕様: [Local Worker PR / Backtest Flow](11-local-worker-pr-backtest-flow.md)
 
+実装計画: [Worker Implementation Plan](12-worker-implementation-plan.md)
+
 ### BAA-1069: 配信検証と変更周知
 
 - PR マージ検知を定義する

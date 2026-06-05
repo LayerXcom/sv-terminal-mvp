@@ -5,6 +5,7 @@
 node_modules/
 dist/
 .state/
+.sv-terminal/
+.sv-terminal-test/
 *.sqlite
 *.log
-

@@ -1,0 +1,28 @@
+{
+  "issue": {
+    "id": "issue_uuid",
+    "identifier": "BAA-1234",
+    "title": "[test] 交通費ルール相談",
+    "url": "https://linear.app/layerx-inc/issue/BAA-1234/example",
+    "project": "test-tenantid-00000000-0000-488b-81ca-8c90531b1945",
+    "team": "approval_agent",
+    "status": "In Review",
+    "assignee": "sv",
+    "labels": ["trigger:slack-inquiry", "resolution:rule-change"]
+  },
+  "comments": [
+    {
+      "id": "comment_slack",
+      "threadName": "Slack Sync",
+      "url": "https://linear.app/layerx-inc/issue/BAA-1234#comment_slack",
+      "slackUrl": "https://layer-x.slack.com/archives/C0B91JF61JL/p1780000000000001",
+      "body": "経理相談の同期スレッド。交通費の扱いについて合意済み。"
+    },
+    {
+      "id": "comment_proposal",
+      "threadName": "Proposal & Delivery",
+      "url": "https://linear.app/layerx-inc/issue/BAA-1234#comment_proposal",
+      "body": "## Decision Memo v1\n\n採用会食に紐づく移動交通費は、通常の交通費ルールではなく採用関連費として扱う。\n\n## Rule Proposal v1\n\n### Recommended Resolution\n\n`rule_change`\n\n### Expected Diff\n\n- File: `approval_rules/test/rules.json`\n- Operation: update\n\n[SV_APPROVAL action_id=act_20260605_001 decision=approved target=proposal:v1 by=hirotea]"
+    }
+  ]
+}
