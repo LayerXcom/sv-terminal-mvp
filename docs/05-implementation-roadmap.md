@@ -51,6 +51,10 @@ docs/archive/20260603-hitl-sv-terminal-requirements/
 
 論点整理: [方針確定から Rule Proposal 承認までの HITL 論点](07-decision-to-rule-proposal-hitl-questions.md)
 
+体験整理: [Thread Experience Map](08-thread-experience-map.md)
+
+実装契約: [Proposal & Delivery Contract](09-proposal-delivery-contract.md)
+
 ### BAA-1068: ローカル PC エージェントの PR / バックテストフロー
 
 - Linear issue コンテキスト取得を定義する
