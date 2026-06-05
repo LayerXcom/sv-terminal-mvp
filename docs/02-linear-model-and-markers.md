@@ -79,7 +79,7 @@ MVP2 のフェーズ:
 - Proposal & Delivery スレッド: ルール提案、承認、変更依頼、却下、Linear linked PR、バックテスト結果、CR 対応、merge、本番反映確認
 - Announcement スレッド: 変更周知文、SV 承認、Slack 投稿結果
 
-Slack の会話は Linear 公式の Slack 同期スレッドを使う。
+Slack の会話は Linear 公式の Slack synced comment thread を使う。
 GitHub PR は Linear 公式の GitHub integration による linked PR を使う。
 
 ## マーカー構文

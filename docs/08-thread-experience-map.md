@@ -229,13 +229,13 @@ marker は承認ではなく、agent に decision memo と proposal 生成を開
 最小 marker:
 
 ```md
-[SV_ACTION id=act_<id> type=capture_decision target=slack_thread status=requested]
+[SV_ACTION id=act_<id> type=capture_decision target=synced_slack_thread status=requested]
 ```
 
 resolution hint 付き:
 
 ```md
-[SV_ACTION id=act_<id> type=capture_decision target=slack_thread status=requested resolution_hint=rule_change]
+[SV_ACTION id=act_<id> type=capture_decision target=synced_slack_thread status=requested resolution_hint=rule_change]
 ```
 
 agent が返すもの:

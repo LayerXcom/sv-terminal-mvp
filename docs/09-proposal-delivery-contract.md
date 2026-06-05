@@ -39,13 +39,35 @@ stateDiagram-v2
 
 | Target | 意味 | 例 |
 | --- | --- | --- |
-| `slack_thread` | 同期済み Slack thread | `target=slack_thread` |
+| `synced_slack_thread` | Linear に公式同期された Slack thread | `target=synced_slack_thread` |
 | `decision_memo:<version>` | decision memo | `target=decision_memo:v1` |
 | `proposal:<version>` | rule proposal | `target=proposal:v1` |
 | `linked_pr` | Linear に公式連携された GitHub PR | `target=linked_pr` |
 | `backtest:<run_id>` | backtest run | `target=backtest:bt_20260605_001` |
 | `announcement:<version>` | 周知文 draft | `target=announcement:v1` |
 | `issue` | parent issue 全体 | `target=issue` |
+
+## Slack Thread Sync
+
+Slack 相談の source of truth は、独自 marker の `slack_thread` ではなく Linear 公式 Slack integration の synced comment thread とする。
+
+Linear 公式連携では、Slack message から issue を作ると Slack thread と Linear issue comment thread が双方向 sync される。
+既存 Slack thread を API で issue に紐づける場合は、`attachmentLinkSlack` mutation に `syncToCommentThread: true` を渡す。
+
+MVP 方針:
+
+- Slack top-level inquiry を受けたら、n8n / bot が parent issue を作成する
+- parent issue 作成後、Slack message URL を `attachmentLinkSlack(syncToCommentThread: true)` で紐づける
+- Slack 相談の正本は Linear synced comment thread
+- Slack URL / channel id / thread ts は fallback と監査用 metadata
+- worker は decision memo 生成時、Linear issue に紐づく synced Slack thread を読む
+- `capture_decision` marker は `target=synced_slack_thread` を使う
+
+失敗時だけ fallback として Slack URL を明示する:
+
+```md
+[SV_ACTION_RESULT id=act_20260605_001 status=failed result=slack_sync_missing slack_url=<slack_url>]
+```
 
 ## GitHub PR Linking
 
@@ -97,13 +119,13 @@ SV が Slack 相談を rule proposal 生成へ進める合図。
 最小:
 
 ```md
-[SV_ACTION id=act_20260605_001 type=capture_decision target=slack_thread status=requested]
+[SV_ACTION id=act_20260605_001 type=capture_decision target=synced_slack_thread status=requested]
 ```
 
 resolution hint 付き:
 
 ```md
-[SV_ACTION id=act_20260605_001 type=capture_decision target=slack_thread status=requested resolution_hint=rule_change]
+[SV_ACTION id=act_20260605_001 type=capture_decision target=synced_slack_thread status=requested resolution_hint=rule_change]
 ```
 
 worker が Event Log に返す:

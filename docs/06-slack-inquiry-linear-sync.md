@@ -272,7 +272,7 @@ Slack sync に失敗した場合:
 4. 次の marker を付ける
 
 ```md
-[SV_ACTION id=act_<date>_sync_slack_thread type=sync_slack_thread target=<slack_url> status=requested]
+[SV_ACTION id=act_<date>_sync_slack_thread type=sync_slack_thread target=synced_slack_thread status=requested slack_url=<slack_url>]
 ```
 
 ## Duplicate / replay
