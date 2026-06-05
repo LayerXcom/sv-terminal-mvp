@@ -55,6 +55,8 @@ docs/archive/20260603-hitl-sv-terminal-requirements/
 
 実装契約: [Proposal & Delivery Contract](09-proposal-delivery-contract.md)
 
+全体整理: [Current Spec Overview](10-current-spec-overview.md)
+
 ### BAA-1068: ローカル PC エージェントの PR / バックテストフロー
 
 - Linear issue コンテキスト取得を定義する
@@ -63,6 +65,8 @@ docs/archive/20260603-hitl-sv-terminal-requirements/
 - バックテスト結果フォーマットを定義する
 - GitHub PR と Linear のリンク方法を定義する
 - PR フィードバック検知と再開ルールを定義する
+
+仕様: [Local Worker PR / Backtest Flow](11-local-worker-pr-backtest-flow.md)
 
 ### BAA-1069: 配信検証と変更周知
 
