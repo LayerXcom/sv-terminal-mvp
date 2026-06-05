@@ -76,10 +76,11 @@ MVP2 のフェーズ:
 各親配信 issue には次を持つ:
 
 - Event Log スレッド: bot / n8n / ローカル worker のイベント記録
-- Proposal & Delivery スレッド: ルール提案、承認、変更依頼、却下、PR URL、バックテスト結果、CR 対応、merge、本番反映確認
+- Proposal & Delivery スレッド: ルール提案、承認、変更依頼、却下、Linear linked PR、バックテスト結果、CR 対応、merge、本番反映確認
 - Announcement スレッド: 変更周知文、SV 承認、Slack 投稿結果
 
 Slack の会話は Linear 公式の Slack 同期スレッドを使う。
+GitHub PR は Linear 公式の GitHub integration による linked PR を使う。
 
 ## マーカー構文
 

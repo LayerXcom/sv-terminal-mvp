@@ -42,10 +42,37 @@ stateDiagram-v2
 | `slack_thread` | 同期済み Slack thread | `target=slack_thread` |
 | `decision_memo:<version>` | decision memo | `target=decision_memo:v1` |
 | `proposal:<version>` | rule proposal | `target=proposal:v1` |
-| `pr:<number>` | GitHub PR | `target=pr:12345` |
+| `linked_pr` | Linear に公式連携された GitHub PR | `target=linked_pr` |
 | `backtest:<run_id>` | backtest run | `target=backtest:bt_20260605_001` |
 | `announcement:<version>` | 周知文 draft | `target=announcement:v1` |
 | `issue` | parent issue 全体 | `target=issue` |
+
+## GitHub PR Linking
+
+GitHub PR の source of truth は、独自 marker の `pr:<number>` ではなく Linear 公式 GitHub integration の linked PR とする。
+
+Linear 公式連携では、branch name、PR title、PR description、commit message に Linear issue ID を含めることで PR と issue をリンクできる。
+リンク後は Linear issue 側に PR が表示され、GitHub 側にも Linear issue への linkback が付く。
+
+MVP 方針:
+
+- PR 作成 agent は PR title または PR description に parent issue identifier を必ず含める
+- Proposal & Delivery Thread には PR URL を人間向けに返すが、SSoT は Linear linked PR
+- worker は Linear issue の linked PR を読んで PR open / review / merge 状態を確認する
+- Linear Diffs / Reviews が使える場合、SV / reviewer は Linear 上で PR details、diff、checks、comments を見る
+- 親 issue は PR merge 直後に close しないため、Linear の status automation は Announcement 完了までの運用と衝突しないように設定する
+
+PR description 例:
+
+```md
+References BAA-1234
+
+Source proposal: proposal:v1
+Source decision memo: decision_memo:v1
+```
+
+`References` のような non-closing magic word を使うと、PR merge だけで issue を完了扱いにしない運用にしやすい。
+最終 close は Announcement posted / skipped 後に worker が行う。
 
 ## Resolution Types
 
@@ -256,14 +283,15 @@ worker result:
 
 PR 作成に成功しても Proposal & Delivery Thread は resolve しない。
 同じ thread に PR URL を返す。
+ただし、PR の正本は Linear 公式 GitHub integration が issue に紐づける linked PR とする。
 
 ```md
-[SV_ACTION_RESULT id=act_20260605_002 status=done result=pr_opened target=pr:12345 pr=<github_pr_url> branch=<branch_name>]
+[SV_ACTION_RESULT id=act_20260605_002 status=done result=pr_opened target=linked_pr pr=<github_pr_url> branch=<branch_name> linear_issue=<issue_identifier>]
 ```
 
 表示 checklist:
 
-- [ ] PR linked
+- [ ] Linear linked PR exists
 - [ ] Backtest completed
 - [ ] Review comments addressed
 - [ ] Merged
@@ -303,18 +331,19 @@ fail 時は自動 merge せず、assignee を SV に戻す。
 
 PR review の CR は GitHub 側で行われる。
 worker は CR 対応結果を Proposal & Delivery Thread に戻す。
+PR 状態は、できるだけ Linear linked PR から読む。
 
 ```md
-[SV_EVENT id=evt_20260605_008 type=pr_review_update status=done target=pr:12345 state=changes_requested]
-[SV_EVENT id=evt_20260605_009 type=pr_review_update status=done target=pr:12345 state=approved]
-[SV_EVENT id=evt_20260605_010 type=pr_merged status=done target=pr:12345 merge_sha=<sha>]
-[SV_EVENT id=evt_20260605_011 type=production_verified status=done target=pr:12345 version=<rule_version>]
+[SV_EVENT id=evt_20260605_008 type=pr_review_update status=done target=linked_pr state=changes_requested pr=<github_pr_url>]
+[SV_EVENT id=evt_20260605_009 type=pr_review_update status=done target=linked_pr state=approved pr=<github_pr_url>]
+[SV_EVENT id=evt_20260605_010 type=pr_merged status=done target=linked_pr pr=<github_pr_url> merge_sha=<sha>]
+[SV_EVENT id=evt_20260605_011 type=production_verified status=done target=linked_pr pr=<github_pr_url> version=<rule_version>]
 ```
 
 Production verification 失敗:
 
 ```md
-[SV_EVENT id=evt_20260605_011 type=production_verified status=failed target=pr:12345 reason=<reason>]
+[SV_EVENT id=evt_20260605_011 type=production_verified status=failed target=linked_pr pr=<github_pr_url> reason=<reason>]
 ```
 
 ## 10. Ready For Announcement
@@ -350,4 +379,4 @@ MVP worker は次だけ読めればよい。
 - `action_id` を proposal comment 作成時に agent が採番するか、SV の Chrome extension が採番するか
 - `by=<sv>` は Linear user id にするか、display name にするか
 - `reason` / `resolution` は enum としてどこで validation するか
-- PR review update を GitHub webhook で拾うか、local worker polling にするか
+- PR review update を Linear linked PR から読むか、GitHub webhook / local worker polling で補完するか

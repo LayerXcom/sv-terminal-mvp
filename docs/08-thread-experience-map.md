@@ -276,14 +276,15 @@ proposal approved 後、local PC agent が approval_rules を編集し、PR を�
 重要:
 
 - PR 作成成功時に Proposal & Delivery Thread を resolve しない
-- PR URL は同じ Proposal & Delivery Thread に戻す
+- PR は Linear 公式 GitHub integration の linked PR として issue に紐づける
+- PR URL は人間向けに同じ Proposal & Delivery Thread にも戻す
 - PR 作成失敗も同じ thread に戻す
 
 event:
 
 ```md
 [SV_EVENT id=evt_<id> type=pr_create_requested status=done source=linear]
-[SV_ACTION_RESULT id=act_<id> status=done result=pr_opened pr=<github_pr_url>]
+[SV_ACTION_RESULT id=act_<id> status=done result=pr_opened target=linked_pr pr=<github_pr_url>]
 ```
 
 失敗時:
@@ -298,7 +299,7 @@ backtest 結果、PR review の戻り、CR 対応結果は Proposal & Delivery T
 
 チェックリスト:
 
-- [ ] PR URL linked
+- [ ] Linear linked PR exists
 - [ ] Backtest command / run id
 - [ ] Backtest result summary
 - [ ] Known regression / risk
@@ -310,8 +311,8 @@ event:
 
 ```md
 [SV_EVENT id=evt_<id> type=backtest_completed status=done result=<pass_or_fail>]
-[SV_EVENT id=evt_<id> type=pr_merged status=done pr=<github_pr_url>]
-[SV_EVENT id=evt_<id> type=production_verified status=done version=<rule_version>]
+[SV_EVENT id=evt_<id> type=pr_merged status=done target=linked_pr pr=<github_pr_url>]
+[SV_EVENT id=evt_<id> type=production_verified status=done target=linked_pr version=<rule_version>]
 ```
 
 ### 7. 変更周知
