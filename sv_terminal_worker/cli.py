@@ -113,12 +113,12 @@ def _build_issue_repository(args: argparse.Namespace):
 
 def _build_event_queue(args: argparse.Namespace):
     if getattr(args, "event_source", "fixture") == "n8n":
-        base_url = os.environ.get("N8N_BASE_URL")
+        base_url = os.environ.get("N8N_API_BASE_URL") or os.environ.get("N8N_BASE_URL")
         api_key = os.environ.get("N8N_API_KEY")
-        event_path = os.environ.get("N8N_EVENT_PATH", "/sv-terminal/events")
-        if not base_url or not api_key:
-            raise SystemExit("N8N_BASE_URL and N8N_API_KEY are required for --event-source n8n")
-        return N8nEventQueue(base_url, api_key, event_path)
+        data_table_id = os.environ.get("N8N_DATATABLE_ID")
+        if not base_url or not api_key or not data_table_id:
+            raise SystemExit("N8N_API_BASE_URL, N8N_API_KEY, and N8N_DATATABLE_ID are required for --event-source n8n")
+        return N8nEventQueue(base_url, api_key, data_table_id)
     return FixtureEventQueue(args.event_file)
 
 

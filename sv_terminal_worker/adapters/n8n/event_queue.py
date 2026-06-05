@@ -9,28 +9,45 @@ from sv_terminal_worker.domain.models import QueuedEvent
 
 
 class N8nEventQueue:
-    def __init__(self, base_url: str, api_key: str, event_path: str = "/sv-terminal/events"):
+    def __init__(self, base_url: str, api_key: str, data_table_id: str):
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
-        self.event_path = event_path
+        self.data_table_id = data_table_id
 
     def poll_queued(self, limit: int = 10) -> list[QueuedEvent]:
-        query = urllib.parse.urlencode({"status": "queued", "limit": str(limit)})
-        payload = self._request("GET", f"{self.event_path}?{query}")
-        events = payload.get("events", payload if isinstance(payload, list) else [])
-        return [_event_from_dict(event) for event in events]
+        query = urllib.parse.urlencode({"limit": str(limit)})
+        payload = self._request("GET", f"{self._rows_path()}?{query}")
+        rows = _rows_from_payload(payload)
+        queued = [row for row in rows if row.get("status") == "queued"]
+        return [_event_from_dict(row) for row in queued[:limit]]
 
     def mark_processing(self, event_id: str) -> None:
-        self._update_status(event_id, "processing", None)
+        self._update_row(event_id, {"status": "processing"})
 
     def mark_processed(self, event_id: str, result: str) -> None:
-        self._update_status(event_id, "processed", result)
+        self._update_row(event_id, {"status": "processed", "last_result": result})
 
     def mark_failed(self, event_id: str, reason: str) -> None:
-        self._update_status(event_id, "failed", reason)
+        self._update_row(event_id, {"status": "failed", "last_error": reason})
 
-    def _update_status(self, event_id: str, status: str, message: str | None) -> None:
-        self._request("POST", f"{self.event_path}/{event_id}/status", {"status": status, "message": message})
+    def _update_row(self, event_id: str, data: dict[str, Any]) -> None:
+        self._request(
+            "PATCH",
+            f"{self._rows_path()}/update",
+            {
+                "filter": {
+                    "type": "and",
+                    "filters": [
+                        {"columnName": "event_id", "condition": "eq", "value": event_id},
+                    ],
+                },
+                "data": data,
+                "returnData": False,
+            },
+        )
+
+    def _rows_path(self) -> str:
+        return f"/data-tables/{urllib.parse.quote(self.data_table_id)}/rows"
 
     def _request(self, method: str, path: str, data: dict[str, Any] | None = None) -> Any:
         body = json.dumps(data).encode("utf-8") if data is not None else None
@@ -46,6 +63,17 @@ class N8nEventQueue:
         with urllib.request.urlopen(request, timeout=30) as response:
             text = response.read().decode("utf-8")
         return json.loads(text) if text else {}
+
+
+def _rows_from_payload(payload: Any) -> list[dict[str, Any]]:
+    if isinstance(payload, list):
+        return payload
+    if not isinstance(payload, dict):
+        return []
+    rows = payload.get("data") or payload.get("rows") or payload.get("items") or payload.get("events") or []
+    if not isinstance(rows, list):
+        return []
+    return rows
 
 
 def _event_from_dict(data: dict[str, Any]) -> QueuedEvent:

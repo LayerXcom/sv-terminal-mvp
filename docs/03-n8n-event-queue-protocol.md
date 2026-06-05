@@ -15,14 +15,14 @@ n8n Data Table `sv_terminal_events` を次の用途で使う:
 前提:
 
 - Data Table は Data Table ノード、DataTable API エンドポイント、または UI で管理する。
-- API エンドポイント群: `/datatables`。
+- local worker の API base: `https://<instance>.app.n8n.cloud/api/v1`
+- local worker の row API: `/data-tables/{dataTableId}/rows`
 - API 認証ヘッダ: `X-N8N-API-KEY`。
+- custom `/sv-terminal/events` endpoint は使わない。
 
 最低限のスコープ:
 
 - `dataTable:read`
-- `dataTable:list`
-- `dataTableRow:create`
 - `dataTableRow:read`
 - `dataTableRow:update`
 - `dataTableRow:upsert`
@@ -73,7 +73,7 @@ sv_terminal_events
 ## ステータスライフサイクル
 
 ```text
-queued -> claimed -> processing -> done
+queued -> claimed -> processing -> processed
                          |
                          -> failed -> queued
                          |
@@ -86,10 +86,10 @@ queued -> claimed -> processing -> done
 
 - Slack トップレベル問い合わせ: `slack:<channel_id>:<thread_ts>:create_issue`
 - Slack スレッド返信: `slack:<channel_id>:<thread_ts>:<message_ts>`
-- Linear マーカー: `linear:<issue_identifier>:<marker_id>`
+- Linear マーカー: `linear:<issue_identifier>:<action_id>`
 - ダミーアラート: `dummy:<tenant_key>:<rule_id>:<window_start>:<window_end>`
 
-ローカル worker は処理前に、同一 `dedupe_key` で `done` / `processing` / 有効な `claimed` の行がないか確認する。
+ローカル worker は処理前に、同一 `dedupe_key` で `processed` / `processing` / 有効な `claimed` の行がないか確認する。
 
 ## リースとリトライ
 
@@ -166,7 +166,7 @@ queued -> claimed -> processing -> done
 7. `status = processing` にする。
 8. アクションを実行する。
 9. 結果を Linear Event Log スレッドに投稿する。
-10. n8n 行を `done` にする。
+10. n8n 行を `processed` にする。
 
 失敗時:
 
@@ -187,6 +187,7 @@ queued -> claimed -> processing -> done
 
 MVP1:
 
+- `linear_marker_detected`
 - `slack_inquiry_created`
 - `linear_issue_bootstrap_requested`
 - `decision_capture_requested`

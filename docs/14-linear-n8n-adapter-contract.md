@@ -76,10 +76,18 @@ Write:
 Environment:
 
 ```text
-N8N_BASE_URL
+N8N_API_BASE_URL=https://<instance>.app.n8n.cloud/api/v1
 N8N_API_KEY
-N8N_EVENT_PATH=/sv-terminal/events
+N8N_DATATABLE_ID=<sv_terminal_events data table id>
 ```
+
+API:
+
+- `GET /data-tables/{dataTableId}/rows?limit=<limit>`
+- `PATCH /data-tables/{dataTableId}/rows/update`
+
+Custom `/sv-terminal/events` endpoint は使わない。
+n8n 公式 API と Data Table API だけを local worker の外部契約にする。
 
 Expected event shape:
 
@@ -96,6 +104,9 @@ Expected event shape:
   }
 }
 ```
+
+`payload_json` は n8n Data Table 上では JSON 文字列でも JSON object でもよい。
+adapter が worker の `QueuedEvent.payload` に正規化する。
 
 n8n payload は business source ではない。
 worker は必ず Linear の最新 state を取り直す。
