@@ -3,15 +3,20 @@
   "nodes": [
     {
       "parameters": {
-        "events": [
-          "Issue Comment"
+        "authentication": "oAuth2",
+        "teamId": "REPLACE_WITH_APCC_TEAM_ID",
+        "resources": [
+          "comment"
         ]
       },
       "id": "linear-trigger-issue-comment",
       "name": "Linear Trigger - Issue Comment",
       "type": "n8n-nodes-base.linearTrigger",
       "typeVersion": 1,
-      "position": [0, 0]
+      "position": [
+        0,
+        0
+      ]
     },
     {
       "parameters": {
@@ -21,7 +26,10 @@
       "name": "Normalize approval marker",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [280, 0]
+      "position": [
+        280,
+        0
+      ]
     },
     {
       "parameters": {
@@ -38,20 +46,70 @@
       "name": "Queueable?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [560, 0]
+      "position": [
+        560,
+        0
+      ]
     },
     {
       "parameters": {
         "operation": "upsert",
-        "dataTableId": "REPLACE_WITH_SV_TERMINAL_EVENTS_TABLE_ID",
-        "matchColumn": "dedupe_key",
-        "columns": "={{ $json.row }}"
+        "dataTableId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SV_TERMINAL_EVENTS_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "sv_terminal_events"
+        },
+        "filters": {
+          "conditions": [
+            {}
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "event_id": "={{ $json.row.event_id }}",
+            "created_at": "={{ $json.row.created_at }}",
+            "updated_at": "={{ $json.row.updated_at }}",
+            "source": "={{ $json.row.source }}",
+            "source_event_id": "={{ $json.row.source_event_id }}",
+            "linear_issue_id": "={{ $json.row.linear_issue_id }}",
+            "linear_issue_identifier": "={{ $json.row.linear_issue_identifier }}",
+            "linear_comment_id": "={{ $json.row.linear_comment_id }}",
+            "tenant_key": "={{ $json.row.tenant_key }}",
+            "tenant_project_id": "={{ $json.row.tenant_project_id }}",
+            "type": "={{ $json.row.type }}",
+            "status": "={{ $json.row.status }}",
+            "priority": "={{ $json.row.priority }}",
+            "actor_kind": "={{ $json.row.actor_kind }}",
+            "actor_id": "={{ $json.row.actor_id }}",
+            "dedupe_key": "={{ $json.row.dedupe_key }}",
+            "payload_json": "={{ $json.row.payload_json }}",
+            "attempts": "={{ $json.row.attempts }}",
+            "claimed_by": "={{ $json.row.claimed_by }}",
+            "claimed_at": "={{ $json.row.claimed_at }}",
+            "lease_until": "={{ $json.row.lease_until }}",
+            "last_error": "={{ $json.row.last_error }}",
+            "result_linear_comment_id": "={{ $json.row.result_linear_comment_id }}",
+            "processed_at": "={{ $json.row.processed_at }}"
+          },
+          "matchingColumns": [
+            "dedupe_key"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
       "id": "upsert-event-row",
       "name": "Upsert sv_terminal_events row",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1,
-      "position": [840, -80]
+      "position": [
+        840,
+        -80
+      ]
     },
     {
       "parameters": {},
@@ -59,20 +117,51 @@
       "name": "Ignore non queueable comment",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [840, 120]
+      "position": [
+        840,
+        120
+      ]
     }
   ],
   "connections": {
     "Linear Trigger - Issue Comment": {
-      "main": [[{ "node": "Normalize approval marker", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Normalize approval marker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Normalize approval marker": {
-      "main": [[{ "node": "Queueable?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Queueable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Queueable?": {
       "main": [
-        [{ "node": "Upsert sv_terminal_events row", "type": "main", "index": 0 }],
-        [{ "node": "Ignore non queueable comment", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Upsert sv_terminal_events row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignore non queueable comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

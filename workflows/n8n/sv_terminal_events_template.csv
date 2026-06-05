@@ -1,0 +1,1 @@
+event_id,created_at,updated_at,source,source_event_id,linear_issue_id,linear_issue_identifier,linear_comment_id,tenant_key,tenant_project_id,type,status,priority,actor_kind,actor_id,dedupe_key,payload_json,attempts,claimed_by,claimed_at,lease_until,last_error,result_linear_comment_id,processed_at

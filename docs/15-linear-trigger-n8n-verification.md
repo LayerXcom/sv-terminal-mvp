@@ -120,6 +120,17 @@ python3 -m sv_terminal_worker.cli poll --once --event-source n8n --issue-source 
 - Duplicate marker / same `action_id` upserts instead of duplicating.
 - local worker processes the row once.
 
+## Data Table node settings
+
+`Upsert sv_terminal_events row` は次の設定にする。
+
+- Operation: `upsert`
+- Matching column: `dedupe_key`
+- Columns: each field maps explicitly to `{{$json.row.<column_name>}}`
+
+Do not set the whole Columns value to `{{$json.row}}`.
+n8n may export that as character-indexed fields and leave `matchingColumns` empty.
+
 ## Fallback
 
 Linear Trigger node が workspace / credential / event type の都合で使えない場合は、Webhook node で Linear webhook を受け、`Linear-Signature` を Code node で検証する構成に戻す。
