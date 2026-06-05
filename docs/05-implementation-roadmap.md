@@ -70,6 +70,10 @@ docs/archive/20260603-hitl-sv-terminal-requirements/
 
 実装計画: [Worker Implementation Plan](12-worker-implementation-plan.md)
 
+Worker architecture: [Ports and Adapters Worker Architecture](13-ports-and-adapters-worker-architecture.md)
+
+Adapter contract: [Linear / n8n Adapter Contract](14-linear-n8n-adapter-contract.md)
+
 ### BAA-1069: 配信検証と変更周知
 
 - PR マージ検知を定義する

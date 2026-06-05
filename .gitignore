@@ -7,5 +7,6 @@ dist/
 .state/
 .sv-terminal/
 .sv-terminal-test/
+.sv-terminal-test*/
 *.sqlite
 *.log

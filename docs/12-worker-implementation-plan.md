@@ -15,23 +15,25 @@ MVP の最初の実装は、Linear / n8n / GitHub を直接叩く前に、ロー
 
 ## 実装ステップ
 
-### Step 1: Local-only worker skeleton
+### Step 1: Local worker runtime
 
-実装する。
+実装済み。
 
 - `sv-terminal-worker parse-marker`
 - `sv-terminal-worker dry-run --issue-file <path>`
 - `sv-terminal-worker build-agent-input --context-file <path>`
+- `sv-terminal-worker poll --once --event-source fixture --issue-source fixture`
+- `sv-terminal-worker run-action --issue <identifier> --action-id <action_id>`
 - marker parser
 - context packet schema
 - agent input markdown generator
 - idempotency state file
 
-外部 API はまだ呼ばない。
+外部 API なしの fixture mode で動く。
 
 ### Step 2: Linear read adapter
 
-次に実装する。
+adapter skeleton 実装済み。
 
 - issue read
 - comments read
@@ -42,7 +44,7 @@ MVP の最初の実装は、Linear / n8n / GitHub を直接叩く前に、ロー
 
 ### Step 3: Write-back adapter
 
-次に実装する。
+adapter skeleton 実装済み。
 
 - Event Log comment write
 - Proposal & Delivery Thread write
@@ -65,6 +67,8 @@ MVP の最初の実装は、Linear / n8n / GitHub を直接叩く前に、ロー
 ```text
 python3 -m sv_terminal_worker.cli parse-marker "<marker>"
 python3 -m sv_terminal_worker.cli dry-run --issue-file fixtures/issues/approved_rule_change.json
+python3 -m sv_terminal_worker.cli poll --once --event-source fixture --issue-source fixture
+python3 -m sv_terminal_worker.cli run-action --issue BAA-1234 --action-id act_20260605_001 --issue-source fixture
 python3 -m sv_terminal_worker.cli build-agent-input --context-file .sv-terminal/runs/BAA-1234/act_001/context.json
 ```
 
@@ -151,5 +155,7 @@ MVP 初期は dummy backtest を許容する。
 - [ ] dry-run fixture から context packet を生成できる
 - [ ] agent input markdown を生成できる
 - [ ] state file を `.sv-terminal/runs/.../state.json` に保存できる
+- [ ] `poll --once --event-source fixture --issue-source fixture` が通る
+- [ ] `run-action --issue BAA-1234 --action-id act_20260605_001` が通る
 - [ ] README に worker CLI を追記する
 - [ ] 外部 API なしで `python3 -m unittest discover -s tests` が通る

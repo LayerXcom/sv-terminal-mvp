@@ -1,0 +1,15 @@
+{
+  "events": [
+    {
+      "event_id": "evt_20260605_approved_proposal",
+      "type": "linear_marker_detected",
+      "status": "queued",
+      "linear_issue_identifier": "BAA-1234",
+      "source": "linear",
+      "dedupe_key": "linear:BAA-1234:act_20260605_001",
+      "payload_json": {
+        "action_id": "act_20260605_001"
+      }
+    }
+  ]
+}

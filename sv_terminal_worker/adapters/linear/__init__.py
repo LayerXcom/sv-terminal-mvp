@@ -1,0 +1,1 @@
+"""Linear GraphQL adapters."""
